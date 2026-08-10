@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+.env
+
+# PJSIP is built from source by the install guide, into a tree this repository
+# only describes.
+.build/
