@@ -1,0 +1,25 @@
+{
+  "entry": {
+    "title": "Portier",
+    "data": {
+      "host": "**REDACTED**",
+      "port": 0
+    },
+    "options": {
+      "ring_coalesce_s": 5,
+      "show_tech_panel": true
+    }
+  },
+  "gateway": {
+    "registered": true,
+    "last_invite_status": 200,
+    "director_failures": {
+      "count": 0
+    },
+    "calls_total": 3,
+    "opens": {
+      "door": 2,
+      "gate": 1
+    }
+  }
+}
