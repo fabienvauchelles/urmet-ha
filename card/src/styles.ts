@@ -78,8 +78,7 @@ export const cardStyles = css`
     display: flex;
     gap: 8px;
   }
-  .ring-note,
-  .openers-note {
+  .ring-note {
     margin: 0;
     font-size: 0.8rem;
     opacity: 0.9;
@@ -147,58 +146,9 @@ export const cardStyles = css`
     color: #fff;
   }
   .actions,
-  .talk,
-  .openers-row {
+  .talk {
     display: flex;
     gap: 8px;
-  }
-  .openers {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .opener {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 14px 10px;
-    border-radius: 8px;
-    border: 1px solid var(--urmet-line);
-    cursor: pointer;
-    user-select: none;
-    text-align: center;
-    font-weight: 600;
-  }
-  .opener.armed {
-    flex-direction: column;
-    border-color: var(--urmet-accent);
-    background: color-mix(in srgb, var(--urmet-accent) 12%, transparent);
-  }
-  .opener-confirm-text {
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-  .opener-confirm-actions {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-  }
-  .op-btn {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-    user-select: none;
-  }
-  .op-yes {
-    background: var(--urmet-accent);
-    color: #fff;
-  }
-  .op-no {
-    background: var(--urmet-line);
   }
   .talk-insecure p {
     margin: 0;

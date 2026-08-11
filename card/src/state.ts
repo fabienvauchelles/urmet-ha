@@ -27,9 +27,6 @@ export interface UrmetCardConfig {
 // The card's own signalling leg, distinct from the gateway call state.
 export type LinkState = "idle" | "answering" | "negotiating" | "waiting" | "live" | "degraded";
 
-// The two physical openers the panel drives (DESIGN 6.5).
-export type Actuator = "door" | "gate";
-
 // A camera to show behind the ring and the stage until the WebRTC leg is live is
 // optional and set per card through the `preview_camera` config key; with none
 // set the stage shows a neutral placeholder instead of any specific entity.
@@ -137,10 +134,14 @@ export interface CardViewModel {
 const RINGING = "ringing";
 const CONNECTING = "connecting";
 const STREAMING = "streaming";
+const INCOMING = "incoming";
 
 export function deriveViewModel(state?: StateWire): CardViewModel {
   const calls = state?.calls ?? [];
-  const ringingCall = calls.find((c) => c.state === RINGING);
+  // Only a call coming IN is a ring. A "look at the door" places an outgoing call
+  // that the gateway also reports as ringing while it connects, and treating that
+  // as a ring would announce the panel as if a visitor had pressed the button.
+  const ringingCall = calls.find((c) => c.state === RINGING && c.direction === INCOMING);
   const streamingCall = calls.find((c) => c.state === STREAMING);
   const connectingCall = calls.find((c) => c.state === CONNECTING);
   const activeCall = streamingCall ?? connectingCall ?? ringingCall;

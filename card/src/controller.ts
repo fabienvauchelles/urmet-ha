@@ -3,7 +3,6 @@ import {
   DEFAULT_AUTO_START,
   deriveViewModel,
   resolveEntry,
-  type Actuator,
   type CardViewModel,
   type HomeAssistant,
   type LinkState,
@@ -41,6 +40,10 @@ export class LinkController implements ReactiveController {
   private link?: WebrtcLink;
   private pendingCallId: string | null = null;
   private autoStarted = false;
+  // Armed until the first state after the card mounts: a ring already in progress
+  // when we arrive (a notification tap) is answered on sight; a ring that starts
+  // while the card is already open only shows the banner.
+  private answerArmed = true;
   private ringTimer?: ReturnType<typeof setInterval>;
   private ringStart?: number;
 
@@ -134,19 +137,6 @@ export class LinkController implements ReactiveController {
     if (hass) void gw.hangUp(hass, callId).catch((error) => console.warn("urmet: hang up failed", error));
   }
 
-  open(actuator: Actuator): void {
-    const hass = this.hass;
-    if (!hass) return;
-    void gw.openActuator(hass, actuator, this.vm.activeCall?.id).catch((error) => {
-      this.error =
-        actuator === "door"
-          ? "L'ouverture de la porte n'a pas été confirmée."
-          : "L'ouverture du portail n'a pas été confirmée.";
-      console.warn("urmet: open failed", error);
-      this.host.requestUpdate();
-    });
-  }
-
   async toggleTalk(): Promise<void> {
     const hass = this.hass;
     const link = this.link;
@@ -204,14 +194,20 @@ export class LinkController implements ReactiveController {
     this.advancePending();
 
     if (this.linkState === "idle") {
+      const ring = vm.ringingCall;
       if (vm.streamingCall && mode !== "never") void this.negotiate(null);
-      else if (mode === "always" && !vm.activeCall && !this.autoStarted) {
+      else if (this.answerArmed && mode === "on_ring" && ring && ring.id !== this.ignoredCallId) {
+        this.answer(ring.id);
+      } else if (mode === "always" && !vm.activeCall && !this.autoStarted) {
         this.autoStarted = true;
         this.look();
       }
     } else if (this.linkState === "live" && vm.degraded) {
       this.linkState = "degraded";
     }
+    // The arrival window is one state wide: only a ring present when the card
+    // first draws auto-answers, never one that arrives afterwards.
+    this.answerArmed = false;
     this.host.requestUpdate();
   }
 

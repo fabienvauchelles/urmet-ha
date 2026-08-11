@@ -133,3 +133,46 @@ describe("teardown", () => {
     );
   });
 });
+
+describe("auto-answer on arrival", () => {
+  function connect(config: Record<string, unknown>) {
+    let deliver: ((frame: unknown) => void) | undefined;
+    const hass = makeHass();
+    hass.connection.subscribeMessage = ((cb: (f: unknown) => void) => {
+      deliver = cb;
+      return Promise.resolve(async () => {});
+    }) as never;
+    const el = create();
+    el.setConfig({ type: "custom:urmet-portier-card", entry_id: "e1", ...config });
+    document.body.appendChild(el);
+    el.hass = hass;
+    return { el, hass, deliver: () => deliver };
+  }
+
+  const ring = (direction: string) => ({
+    type: "state",
+    registered: true,
+    doorphone: null,
+    mic_muted: true,
+    sessions: [],
+    calls: [{ id: "c1", state: "ringing", direction }],
+  });
+
+  it("answers an incoming ring already in progress when the card arrives", async () => {
+    const { el, hass, deliver } = connect({ auto_start: "on_ring" });
+    deliver()?.(ring("incoming"));
+    await Promise.resolve();
+    expect(hass.callService).toHaveBeenCalledWith("urmet", "answer", { call_id: "c1" });
+    el.remove();
+  });
+
+  it("does not answer a ring that starts after the card is already open", async () => {
+    const { el, hass, deliver } = connect({ auto_start: "on_ring" });
+    deliver()?.({ ...ring("incoming"), calls: [] });
+    await Promise.resolve();
+    deliver()?.(ring("incoming"));
+    await Promise.resolve();
+    expect(hass.callService).not.toHaveBeenCalledWith("urmet", "answer", expect.anything());
+    el.remove();
+  });
+});

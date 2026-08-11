@@ -3,7 +3,7 @@
 // commands go over hass.callService to the urmet services (DESIGN 6.5). Media
 // never travels here: it goes browser to add-on over LAN ICE (link/webrtc.ts).
 
-import type { Actuator, HomeAssistant, StateWire, UnsubscribeFunc } from "../state";
+import type { HomeAssistant, StateWire, UnsubscribeFunc } from "../state";
 
 const WS_SUBSCRIBE = "urmet/subscribe";
 const WS_OFFER = "urmet/webrtc/offer";
@@ -69,10 +69,6 @@ export function hangUp(hass: HomeAssistant, callId?: string): Promise<unknown> {
 
 export function look(hass: HomeAssistant): Promise<unknown> {
   return hass.callService("urmet", "look", { want_video: true });
-}
-
-export function openActuator(hass: HomeAssistant, actuator: Actuator, callId?: string): Promise<unknown> {
-  return hass.callService("urmet", "open", callId ? { actuator, call_id: callId } : { actuator });
 }
 
 export function setMic(hass: HomeAssistant, muted: boolean): Promise<unknown> {

@@ -9,14 +9,12 @@ import {
   stageSentence,
   statesEqual,
   trackedIds,
-  type Actuator,
   type AutoStart,
   type HomeAssistant,
   type UrmetCardConfig,
 } from "./state";
 import { renderRing } from "./view/ring";
 import { renderStage } from "./view/stage";
-import { renderOpeners } from "./view/openers";
 import { renderTalk } from "./view/talk";
 import { renderTech } from "./view/tech";
 
@@ -30,21 +28,13 @@ const ALLOWED_KEYS = new Set([
   "layout_options",
   "view_layout",
 ]);
-const ARM_TIMEOUT_MS = 5000;
 
 export class UrmetPortierCard extends LitElement {
   static styles = cardStyles;
 
-  static properties = {
-    _armed: { state: true },
-  };
-
-  _armed: Actuator | null = null;
-
   private readonly _link = new LinkController(this);
   private _config?: UrmetCardConfig;
   private _hass?: HomeAssistant;
-  private _armTimer?: ReturnType<typeof setTimeout>;
   private readonly _videoRef: Ref<HTMLVideoElement> = createRef();
 
   setConfig(config: UrmetCardConfig): void {
@@ -89,24 +79,6 @@ export class UrmetPortierCard extends LitElement {
 
   static getStubConfig(): { auto_start: AutoStart } {
     return { auto_start: DEFAULT_AUTO_START };
-  }
-
-  private _armOpener(actuator: Actuator): void {
-    this._armed = actuator;
-    if (this._armTimer) clearTimeout(this._armTimer);
-    this._armTimer = setTimeout(() => {
-      this._armed = null;
-    }, ARM_TIMEOUT_MS);
-  }
-
-  private _cancelOpener(): void {
-    this._armed = null;
-    if (this._armTimer) clearTimeout(this._armTimer);
-  }
-
-  private _confirmOpener(actuator: Actuator): void {
-    this._cancelOpener();
-    this._link.open(actuator);
   }
 
   private _cameraUrl(): string | undefined {
@@ -174,13 +146,6 @@ export class UrmetPortierCard extends LitElement {
           available: talkAvailable,
           onToggle: () => void link.toggleTalk(),
         })}
-        ${renderOpeners({
-          armed: this._armed,
-          duringRing: !!ringing,
-          onArm: (actuator) => this._armOpener(actuator),
-          onConfirm: (actuator) => this._confirmOpener(actuator),
-          onCancel: () => this._cancelOpener(),
-        })}
         ${this._renderActions(link.hasLink, !!ringing)}
         ${this._config.show_tech
           ? renderTech({ vm, linkState: link.linkState, sessionId: link.sessionId })
@@ -198,7 +163,7 @@ export class UrmetPortierCard extends LitElement {
     if (ringing) return html``;
     const busy = this._link.linkState === "answering" || this._link.connecting;
     return html`<div class="actions">
-      <button class="btn" ?disabled=${busy} @click=${() => this._link.look()}>Regarder la porte</button>
+      <button class="btn" ?disabled=${busy} @click=${() => this._link.look()}>Regarder</button>
     </div>`;
   }
 }

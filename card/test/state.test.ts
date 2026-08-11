@@ -25,7 +25,7 @@ describe("deriveViewModel", () => {
     const state: StateWire = {
       registered: true,
       doorphone: { mac: "00", name: "Portail" },
-      calls: [{ id: "c1", state: "ringing", direction: "in" }],
+      calls: [{ id: "c1", state: "ringing", direction: "incoming" }],
       mic_muted: true,
       sessions: [],
     };
@@ -37,11 +37,23 @@ describe("deriveViewModel", () => {
     expect(vm.doorphoneName).toBe("Portail");
   });
 
+  it("does not treat an outgoing look call as a ring", () => {
+    const state: StateWire = {
+      registered: true,
+      doorphone: { mac: "00", name: "Portail" },
+      calls: [{ id: "c2", state: "ringing", direction: "outgoing" }],
+      mic_muted: true,
+      sessions: [],
+    };
+    const vm = deriveViewModel(state);
+    expect(vm.ringingCall).toBeUndefined();
+  });
+
   it("binds a streaming call to its session and reads the picture", () => {
     const state: StateWire = {
       registered: true,
       doorphone: null,
-      calls: [{ id: "c9", state: "streaming", direction: "in" }],
+      calls: [{ id: "c9", state: "streaming", direction: "incoming" }],
       mic_muted: false,
       sessions: [
         {
@@ -66,7 +78,7 @@ describe("deriveViewModel", () => {
     const vm = deriveViewModel({
       registered: true,
       doorphone: null,
-      calls: [{ id: "c1", state: "streaming", direction: "in" }],
+      calls: [{ id: "c1", state: "streaming", direction: "incoming" }],
       mic_muted: false,
       sessions: [
         { session_id: "s1", call_id: "c1", state: "degraded", connection: "failed", reason: "x", video: null, audio: null },
