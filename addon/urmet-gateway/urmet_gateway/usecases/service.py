@@ -61,6 +61,7 @@ class DoorphoneService:
             sink=bus,
             clock=clock,
             on_change=self.publish_state,
+            reap=self.hangup,
         )
         self._state = StateReader(
             port=port,
@@ -110,10 +111,21 @@ class DoorphoneService:
 
     async def place_call(self, *, want_video: bool = True) -> str:
         """INVITE the doorphone and return the call id once its media streams."""
+        await self._hangup_monitors()
         call = await self._invite(want_video=want_video)
         self._calls.record(call, CallState.STREAMING, Direction.OUTGOING, refine_only=True)
         self.publish_state()
         return call.id
+
+    async def _hangup_monitors(self) -> None:
+        """Drop any monitor call still streaming before a fresh one is placed.
+
+        Two look calls at once would fight for the browser: the newest wins the
+        offer and the older lingers blank. Hanging the older up keeps one.
+        """
+        for tracked in self._calls.streaming():
+            if tracked.direction is Direction.OUTGOING:
+                await self.hangup(tracked.handle.id)
 
     async def answer(self, call_id: str) -> None:
         """Answer an inbound doorbell and wait until its media streams."""

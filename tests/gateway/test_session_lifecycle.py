@@ -8,6 +8,10 @@ tap, so none is left armed on a call that is over.
 
 from __future__ import annotations
 
+import asyncio
+
+import pytest
+
 from urmet_gateway.domain.models import SessionState
 from urmet_gateway.usecases.sessions import CALL_ENDED, REPLACED
 
@@ -43,3 +47,55 @@ async def test_session_opens_replaces_and_closes_with_the_call() -> None:
         assert graph.factory.created[1].close_reasons == [CALL_ENDED]
         assert graph.service.state().sessions == []
         assert graph.typed("webrtc")[-1].state is SessionState.CLOSED
+
+
+async def _let_grace_pass(graph: object) -> None:
+    """Give the reap task its grace sleep and let the hangup run to the transport."""
+    await graph.settle()  # type: ignore[attr-defined]
+    await asyncio.sleep(0.08)
+    await graph.settle()  # type: ignore[attr-defined]
+    await graph.drain()  # type: ignore[attr-defined]
+    await graph.settle()  # type: ignore[attr-defined]
+
+
+async def test_orphaned_monitor_call_is_hung_up_when_its_viewer_leaves(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("urmet_gateway.usecases.sessions.GRACE_S", 0.01)
+    async with open_graph(with_media=True) as graph:
+        assert graph.factory is not None
+        call_id = await graph.service.place_call()
+        await graph.drain()
+        await graph.service.offer("offer-1", call_id)
+        await graph.drain()
+        session = graph.factory.created[0]
+
+        # The only viewer leaves: a monitor call the gateway placed must not
+        # linger streaming, or the next offer would be mis-bound to it.
+        await graph.service.close_session(session.id)
+        await _let_grace_pass(graph)
+
+        assert graph.transport.hung_up == [call_id]
+        assert graph.service.state().calls == []
+
+
+async def test_answered_call_survives_its_browser_leg_closing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("urmet_gateway.usecases.sessions.GRACE_S", 0.01)
+    async with open_graph(with_media=True) as graph:
+        assert graph.factory is not None
+        call_id = await graph.ring()
+        await graph.service.answer(call_id)
+        await graph.drain()
+        await graph.service.offer("offer-1", call_id)
+        await graph.drain()
+        session = graph.factory.created[0]
+
+        # The visitor's dialog is theirs, not the browser's: closing the leg
+        # leaves the incoming call up.
+        await graph.service.close_session(session.id)
+        await _let_grace_pass(graph)
+
+        assert graph.transport.hung_up == []
+        assert [c.id for c in graph.service.state().calls] == [call_id]

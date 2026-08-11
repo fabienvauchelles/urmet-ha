@@ -24,7 +24,7 @@ from typing import Any
 from urmet_sdk import CallHandle, CallState
 
 from urmet_gateway.domain.errors import MediaUnavailableError, NoStreamingCallError
-from urmet_gateway.domain.models import SessionAnswer, SessionView, WebrtcEvent
+from urmet_gateway.domain.models import Direction, SessionAnswer, SessionView, WebrtcEvent
 from urmet_gateway.domain.ports import Clock, EventSink, MediaSessionPort, SessionFactory
 from urmet_gateway.usecases.calls import CallBook
 
@@ -34,6 +34,12 @@ REPLACED = "the browser offered again on this call"
 ENDED_BY_CLIENT = "the client ended the session"
 CALL_ENDED = "the call ended"
 SHUTTING_DOWN = "the gateway is shutting down"
+
+# How long a monitor call keeps streaming with no browser leg before it is hung
+# up. Long enough that a page reload, which closes the leg and opens a new one on
+# the same call, keeps it alive; short enough that a stale leg never lingers to be
+# mis-picked by the next offer.
+GRACE_S = 5.0
 
 
 class MediaSessions:
@@ -47,12 +53,14 @@ class MediaSessions:
         sink: EventSink,
         clock: Clock,
         on_change: Callable[[], None],
+        reap: Callable[[str], Coroutine[Any, Any, None]],
     ) -> None:
         self._factory = factory
         self._calls = calls
         self._sink = sink
         self._now = clock
         self._on_change = on_change
+        self._reap = reap
         self._loop = asyncio.get_running_loop()
         self._sessions: dict[str, MediaSessionPort] = {}
         self._tasks: set[asyncio.Task[None]] = set()
@@ -129,10 +137,36 @@ class MediaSessions:
                 await task
 
     def _session_closed(self, session: MediaSessionPort, reason: str) -> None:
-        """A session ended, however it ended. It leaves the book here and only here."""
+        """A session ended, however it ended. It leaves the book here and only here.
+
+        A monitor call the gateway placed lives only for its viewer: when the last
+        leg on it goes, the dialog is hung up after a grace, so it never lingers
+        streaming to be mis-picked by the next offer. An answered doorbell is left
+        alone: its lifetime is the visitor's, not the browser's.
+        """
         self._sessions.pop(session.id, None)
         self._publish(session, reason=reason)
         self._on_change()
+        call_id = session.call_id
+        if self._orphaned_monitor(call_id):
+            self._spawn(self._reap_after_grace(call_id), name=f"urmet-reap-{call_id}")
+
+    def _orphaned_monitor(self, call_id: str) -> bool:
+        """An outgoing monitor call still streaming with no browser leg left."""
+        if self._for_call(call_id) is not None:
+            return False
+        tracked = self._calls.find(call_id)
+        return (
+            tracked is not None
+            and tracked.state is CallState.STREAMING
+            and tracked.direction is Direction.OUTGOING
+        )
+
+    async def _reap_after_grace(self, call_id: str) -> None:
+        """Hang the monitor call up once the grace passes, unless a leg came back."""
+        await asyncio.sleep(GRACE_S)
+        if self._orphaned_monitor(call_id):
+            await self._reap(call_id)
 
     def _session_media_changed(self, session: MediaSessionPort, reason: str) -> None:
         """A session's picture moved without its call moving: it arrived, or it went."""
