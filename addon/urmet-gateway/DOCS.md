@@ -60,9 +60,10 @@ that names this add-on.
 
 The add-on runs on the host network on purpose. The browser reaches the media
 leg over ICE host candidates on the LAN, and that media cannot pass through
-ingress, which carries only HTTP and WebSocket. The bundled AppArmor profile
-compensates: no extra Linux capability, writes confined to the add-on's own data
-and tmp directories, and no Home Assistant directory mapped in.
+ingress, which carries only HTTP and WebSocket. It maps no Home Assistant
+directory (`/config`, `/media`, `/share` and `/backup` are not mounted) and asks
+for no extra Linux capability, so host networking is the only broad grant it
+takes. It ships no custom AppArmor profile yet; a hardened one is future work.
 
 ## The diagnostics page
 
