@@ -29,22 +29,28 @@ custom repository.
 2. Download **Portier Urmet**.
 3. **Restart Home Assistant Core** (Developer tools > YAML > Restart, or Settings
    > System > Restart). A new integration is not loaded by a config reload.
-4. Settings > Devices & Services > Add integration > **Portier Urmet**.
-5. Host `172.30.32.1` (the Supervisor bridge gateway, how a Core container
-   reaches a `host_network` add-on), port `8099`. The flow reads the doorphone
-   MAC from the gateway and uses it as the unique id. If it aborts with
-   `no_doorphone`, set `doorphone_mac` in the add-on options and retry.
+4. On restart the running add-on announces the gateway through the Supervisor, so
+   **Portier Urmet** appears on its own under Settings > Devices & Services, host
+   and port already filled. Confirm it.
+5. If it does not appear, add it by hand: Add integration > **Portier Urmet**,
+   host `172.30.32.1` (the Supervisor bridge gateway, how a Core container reaches
+   a `host_network` add-on), port `8099`. The flow reads the doorphone MAC from
+   the gateway and keys the entry on it. If it says no panel is known yet, set
+   `doorphone_mac` in the add-on options or ring the doorphone once, then confirm.
 
 ## 3. The dashboard and automations
 
-The example dashboard, automations and test script live in `dashboard/`. Full
-landing paths, the merge rules, the `lovelace:` block and the single core restart
-it needs are in `../dashboard/README.md`. In short: copy `dashboard/portier.yaml`
-into your config's `dashboards/` folder, merge `automations.portier.yaml` and
-`scripts.portier.yaml` into your existing `automations.yaml` and `scripts.yaml`,
-add the `lovelace:` block to `configuration.yaml`, and restart core once for the
-`lovelace:` block. Then run `script.portier_test` to put the whole notification
-chain on the phone.
+`dashboard/portier.yaml` is a whole dashboard you import in one step: Settings >
+Dashboards > Add dashboard > New dashboard from scratch, open it, Edit (the
+pencil) > the three-dot menu > Raw configuration editor, and paste the file. No
+`configuration.yaml` edit and no restart. It is a single `custom:urmet-portier-card`
+that finds the doorphone through the integration.
+
+The optional ring notification (`automations.portier.yaml`) and the test script
+(`scripts.portier.yaml`) merge into your `automations.yaml` and `scripts.yaml` and
+reload with no restart. Set your own `notify` target and yard camera in them first;
+full guidance is in `../dashboard/README.md`. Then run `script.portier_test` to put
+the whole notification chain on the phone.
 
 ## Two-way audio needs a secure context
 

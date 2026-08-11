@@ -1,69 +1,48 @@
-# Portier dashboard, automations and test script
+# Portier dashboard, ring notification and test script
 
-These files are examples you copy into your own Home Assistant configuration. The
-integration itself does NOT travel with them: it installs through HACS (see
-`../docs/install.md`). Copy each file into your config, merge the two that need
-merging, add the `lovelace:` block, then reload or restart as noted below.
+Three optional extras you copy into your own Home Assistant. The integration does
+not travel with them: it installs through HACS (see `../docs/install.md`). None of
+them opens the door or answers on its own.
 
-## Set your own notify target first
+## Dashboard, one step
 
-The automations and the test script send to `notify.notify`. Replace that with
-your own target before using them, for example `notify.mobile_app_YOUR_PHONE`, or
-a notify group if you want the ring to reach several phones. `camera.frontyard` is
-an example camera id in the same files and in `portier.yaml`: use your own yard
-camera entity.
+`portier.yaml` is a whole dashboard you paste in one step, no restart and no
+`configuration.yaml` edit.
 
-## Where each file lands
+1. Settings > Dashboards > Add dashboard > New dashboard from scratch.
+2. Open it, click the pencil to edit, then the three-dot menu > Raw configuration
+   editor.
+3. Replace what is there with the contents of `portier.yaml`, and save.
 
-| This file | Lands as | How | Reload |
-| --- | --- | --- | --- |
-| `portier.yaml` | `dashboards/portier.yaml` (new file) | copy verbatim | see restart note |
-| `automations.portier.yaml` | `automations.yaml` | **merge** the list blocks in, keep the existing entries | `automation.reload`, no restart |
-| `scripts.portier.yaml` | `scripts.yaml` | **merge** the `portier_test:` key into the dict | `script.reload`, no restart |
+The dashboard is a single `custom:urmet-portier-card`. It carries the ring banner,
+the live picture and sound, the door and gate openers, the talk button and a
+technical panel, and it finds the doorphone through the integration, so it does
+not care how your entities are named. If a separate camera points at your door,
+set `preview_camera` in the card to show its image while the card is idle.
 
-`automations.yaml` is a YAML list, so append the five `- id:` blocks.
-`scripts.yaml` is a YAML dict, so add the single `portier_test:` key. Do not
-overwrite either file.
+## Ring notification, optional
 
-## The lovelace block (one manual edit in configuration.yaml)
+`automations.portier.yaml` sends a phone notification on each ring, with a snapshot
+from your yard camera and a button that deep-links to the dashboard. Nothing here
+answers the panel or opens anything.
 
-A storage-mode dashboard cannot be shipped as a file, so the Portier dashboard is
-declared as a per-dashboard YAML mode entry (this survives the 2026.8 removal of
-the top-level `lovelace: mode: yaml` key). Add to `configuration.yaml`:
+- It notifies through `notify.notify`. Replace that with your own target, for
+  example `notify.mobile_app_YOUR_PHONE`, or a notify group to reach several phones.
+- It snapshots `camera.frontyard`, an example id. Use your own yard camera, never
+  the panel: answering the panel to grab a still would stop the ring on the wired
+  handsets.
+- Its entity ids assume the default doorphone name `Portier` (so
+  `event.portier_doorbell` and friends). If you named the device otherwise, adjust
+  them to match.
 
-```yaml
-lovelace:
-  dashboards:
-    portier:
-      mode: yaml
-      title: Portier
-      icon: mdi:doorbell-video
-      show_in_sidebar: true
-      filename: dashboards/portier.yaml
-```
+Merge the `- id:` blocks into your `automations.yaml` (it is a list, so append,
+do not overwrite), then reload from Developer tools > YAML > Automations, or call
+`automation.reload`. No restart.
 
-## Restarts needed
+## Test script, optional
 
-A reload of automations and scripts does NOT load a new integration or a new
-dashboard. So:
-
-- Adding the `lovelace:` block above needs a **full core restart** (once). The
-  dashboard `portier.yaml` file itself needs no further restart after that; edits
-  to it are picked up on a dashboard reload or a page refresh.
-- The automations and the script need **no restart**: reload them from Developer
-  tools > YAML, or call `automation.reload` and `script.reload`.
-- The integration (via HACS) needs its own core restart, covered in
-  `../docs/install.md`. Order the two restarts so the entities exist before the
-  dashboard and automations reference them.
-
-## Deploy order
-
-1. Install and configure the add-on, then the integration via HACS, restart core,
-   add the integration through the UI (see `../docs/install.md`). The
-   `event.portier_*`, `button.portier_*`, `binary_sensor.portier_*` and
-   `sensor.portier_*` entities must exist first.
-2. Copy `portier.yaml` into `dashboards/`, merge the automations and the script,
-   add the `lovelace:` block.
-3. Reload automations and scripts.
-4. Full core restart once for the `lovelace:` block.
-5. Run `script.portier_test` to put the whole notification chain on the phone.
+`scripts.portier.yaml` adds `script.portier_test`, which fires the whole
+notification chain once so you can check it lands on the phone without waiting for
+a real ring. It uses the same `notify.notify` and `camera.frontyard` placeholders,
+so set those first. Merge the single `portier_test:` key into your `scripts.yaml`
+(it is a dict), reload with `script.reload`, then run the script.

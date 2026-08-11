@@ -37,20 +37,22 @@ door and the gate into Home Assistant.
 
 Install in order: the add-on first, the integration second, the dashboard last.
 The integration needs the add-on answering, and the dashboard needs the
-integration's entities. Full steps, including the config-flow host and the
-`lovelace:` block, are in [`docs/install.md`](docs/install.md).
+integration's entities. Full steps are in [`docs/install.md`](docs/install.md).
 
 1. **Add-on.** Settings > Add-ons > Add-on store > Repositories, add this repo's
    URL, then install and start **Urmet doorphone gateway**. Set the Urmet cloud
    email and password in its options. A pre-built `amd64` image is pulled from the
    registry, so there is no local build.
 2. **Integration.** HACS > Custom repositories, add this repo as an **Integration**,
-   download **Portier Urmet**, restart Home Assistant Core, then add it from
-   Settings > Devices & Services. A new integration is not loaded by a config
-   reload, so the restart is required.
-3. **Dashboard.** Copy the example dashboard, automations and test script from
-   [`dashboard/`](dashboard/) into your config. Set your own `notify` target and
-   yard camera in them first. See [`dashboard/README.md`](dashboard/README.md).
+   download **Portier Urmet**, then restart Home Assistant Core (a new integration
+   is not loaded by a config reload). On restart the running add-on announces
+   itself, so Home Assistant offers the doorphone under Settings > Devices &
+   Services with nothing to type: confirm it. If it does not show up, add **Portier
+   Urmet** by hand there, host `172.30.32.1`, port `8099`.
+3. **Dashboard.** Paste [`dashboard/portier.yaml`](dashboard/portier.yaml) into a
+   new dashboard's raw configuration editor, in one step. An optional ring
+   notification and a test script sit alongside it. See
+   [`dashboard/README.md`](dashboard/README.md).
 
 ## Constraints worth knowing before you start
 
@@ -106,7 +108,7 @@ The integration exposes `event.portier_*`, `button.portier_*`,
 
 ## Status and limitations
 
-Version `0.1.0`. Working, early, and honest about what is proven.
+Version `0.1.1`. Working, early, and honest about what is proven.
 
 - **amd64 only.** The pjsua2 build the add-on relies on is validated for that
   architecture alone.

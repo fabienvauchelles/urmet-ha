@@ -27,7 +27,7 @@
   max_exceeded: silent
   triggers:
     - trigger: state
-      entity_id: event.portier_sonnette
+      entity_id: event.portier_doorbell
       not_to:
         - unavailable
         - unknown
@@ -69,8 +69,8 @@
   conditions:
     - condition: template
       value_template: >-
-        {{ states('event.portier_sonnette') not in ['unknown', 'unavailable']
-           and (as_timestamp(now()) - as_timestamp(states('event.portier_sonnette'), 0)) < 60 }}
+        {{ states('event.portier_doorbell') not in ['unknown', 'unavailable']
+           and (as_timestamp(now()) - as_timestamp(states('event.portier_doorbell'), 0)) < 60 }}
   actions:
     - action: urmet.open
       data:
@@ -85,7 +85,7 @@
   max_exceeded: silent
   triggers:
     - trigger: state
-      entity_id: event.portier_sonnette
+      entity_id: event.portier_doorbell
       not_to:
         - unavailable
         - unknown
@@ -106,7 +106,7 @@
   mode: single
   triggers:
     - trigger: state
-      entity_id: binary_sensor.portier_sip
+      entity_id: binary_sensor.portier_sip_registration
       from: "on"
       to: "off"
       for: "00:05:00"
@@ -114,14 +114,14 @@
     - action: notify.notify
       data:
         title: "Portier hors ligne"
-        message: "Le portier n'est plus enregistré depuis 5 minutes (code {{ states('sensor.portier_code_sip') }})."
+        message: "Le portier n'est plus enregistré depuis 5 minutes (code {{ states('sensor.portier_sip_code') }})."
         data:
           channel: portier_etat
           tag: portier_sip
 
 # 4. Unconfirmed-release repair notification. The gateway publishes a
 # registration event with released:false when it could not release its SIP
-# binding on shutdown; the integration mirrors that onto sensor.portier_derniere_erreur
+# binding on shutdown; the integration mirrors that onto sensor.portier_last_error
 # (WP8) and raises the binding_not_released repair (WP9). This match on the
 # error text (English "releas", French "libér") turns it into a phone push, since
 # a repair issue alone is silent. If WP8 changes the surfaced wording, update the
@@ -131,15 +131,15 @@
   mode: single
   triggers:
     - trigger: state
-      entity_id: sensor.portier_derniere_erreur
+      entity_id: sensor.portier_last_error
       not_to:
         - unavailable
         - unknown
   conditions:
     - condition: template
       value_template: >-
-        {{ 'releas' in (states('sensor.portier_derniere_erreur') | lower)
-           or 'libér' in (states('sensor.portier_derniere_erreur') | lower) }}
+        {{ 'releas' in (states('sensor.portier_last_error') | lower)
+           or 'libér' in (states('sensor.portier_last_error') | lower) }}
   actions:
     - action: notify.notify
       data:

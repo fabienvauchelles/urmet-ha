@@ -1,72 +1,21 @@
-# Portier dashboard, YAML mode.
+# Portier Urmet dashboard, ready to import in one step.
 #
-# Lands on the box as /config/dashboards/portier.yaml (see README.md). It is
-# referenced from configuration.yaml by the lovelace: block, not auto-loaded.
-# Two views: "appel" (the live surface a ring notification deep-links to) and
-# "journal" (history and diagnostics). The custom card, the camera preview and
-# the openers all live on the appel view; nothing here auto-answers or auto-opens.
-# camera.frontyard is an example id: replace it with your own yard camera entity,
-# both in the card's preview_camera option and in the picture-entity below.
+# In Home Assistant: Settings > Dashboards > Add dashboard > New dashboard from
+# scratch. Open it, then the pencil (Edit) > the three-dot menu > Raw
+# configuration editor, and paste everything below (replacing what is there).
+#
+# The card carries the whole surface: the ring banner, the live picture and sound
+# once someone answers or looks, the door and gate openers, the talk button and a
+# technical panel. It resolves the doorphone through the integration, so it does
+# not depend on how your entities are named. It needs no camera entity of its own.
+# If a separate camera points at your door, set preview_camera to show its image
+# while the card is idle; otherwise leave it out.
+title: Portier
 views:
-  - title: Appel
-    path: appel
-    type: sections
-    max_columns: 2
-    sections:
-      - type: grid
-        cards:
-          - type: custom:urmet-portier-card
-            auto_start: on_ring
-            preview_camera: camera.frontyard
-      - type: grid
-        cards:
-          - type: picture-entity
-            entity: camera.frontyard
-            camera_view: live
-            show_state: false
-            show_name: false
-          - type: entities
-            title: Ouvertures
-            entities:
-              - entity: button.portier_porte
-                tap_action:
-                  action: perform-action
-                  perform_action: button.press
-                  target:
-                    entity_id: button.portier_porte
-                  confirmation:
-                    text: Ouvrir la porte piétonne ?
-              - entity: button.portier_portail
-                tap_action:
-                  action: perform-action
-                  perform_action: button.press
-                  target:
-                    entity_id: button.portier_portail
-                  confirmation:
-                    text: Portail, un pas de plus (ouvre, stoppe ou ferme selon l'état) ?
-          - type: entities
-            title: État
-            entities:
-              - binary_sensor.portier_sip
-              - sensor.portier_etat_appel
-              - sensor.portier_derniere_sonnerie
-  - title: Journal
-    path: journal
-    type: sections
-    sections:
-      - type: grid
-        cards:
-          - type: logbook
-            target:
-              entity_id:
-                - event.portier_sonnette
-                - event.portier_ouverture
-            hours_to_show: 168
-          - type: entities
-            title: Diagnostic
-            entities:
-              - sensor.portier_sonneries
-              - sensor.portier_ouvertures_porte
-              - sensor.portier_ouvertures_portail
-              - sensor.portier_code_sip
-              - sensor.portier_derniere_erreur
+  - title: Portier
+    path: portier
+    icon: mdi:doorbell-video
+    cards:
+      - type: custom:urmet-portier-card
+        auto_start: on_ring
+        # preview_camera: camera.your_door_camera
