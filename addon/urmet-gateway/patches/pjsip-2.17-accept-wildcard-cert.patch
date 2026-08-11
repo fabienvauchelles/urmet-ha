@@ -1,0 +1,140 @@
+diff --git a/pjsip/src/pjsip/sip_transport_tls.c b/pjsip/src/pjsip/sip_transport_tls.c
+index 1b72467bb..8df601e90 100644
+--- a/pjsip/src/pjsip/sip_transport_tls.c
++++ b/pjsip/src/pjsip/sip_transport_tls.c
+@@ -2003,7 +2003,90 @@ static pj_bool_t on_data_read(pj_ssl_sock_t *ssock,
+ }
+ 
+ 
+-/* 
++/*
++ * Match a host name against one identity taken from the server certificate,
++ * i.e. a dNSName SubjectAltName entry or the Subject Common Name.
++ *
++ * The comparison is case insensitive and is tried exactly first. When the
++ * exact comparison fails, the identity is matched again with the wildcard
++ * rules of RFC 6125 section 6.4.3, the rules a web browser applies:
++ *
++ *   - the wildcard must be the whole leftmost label of the identity, so
++ *     "*.example.com" is a wildcard while "sip*.example.com" and
++ *     "*example.com" are not,
++ *   - the wildcard matches exactly one host name label, so "*.example.com"
++ *     matches "sip.example.com" but not "a.b.example.com",
++ *   - at least two labels must follow the wildcard, so "*.com" can never
++ *     match anything.
++ *
++ * RFC 5922 section 7.2 forbids wildcard certificates for SIP, and honouring
++ * that is why upstream PJSIP only compares identities literally. Accepting
++ * them here is a deliberate local deviation, because some SIP providers
++ * publish nothing but a wildcard certificate. Every accepted wildcard is
++ * logged. Wildcards are never applied to iPAddress entries.
++ *
++ * Returns PJ_TRUE when the host name matches, and sets *p_wildcard to
++ * PJ_TRUE when the match was obtained through the wildcard rules.
++ */
++static pj_bool_t match_cert_name(const pj_str_t *host_name,
++                                 const pj_str_t *cert_name,
++                                 pj_bool_t *p_wildcard)
++{
++    pj_str_t cert_suffix, host_suffix;
++    pj_in6_addr dummy_addr;
++    char *p;
++
++    if (pj_stricmp(host_name, cert_name) == 0)
++        return PJ_TRUE;
++
++    if (host_name->slen == 0)
++        return PJ_FALSE;
++
++    /* A wildcard never matches an IP address literal. */
++    if (pj_inet_pton(pj_AF_INET(), host_name, &dummy_addr) == PJ_SUCCESS ||
++        pj_inet_pton(pj_AF_INET6(), host_name, &dummy_addr) == PJ_SUCCESS)
++    {
++        return PJ_FALSE;
++    }
++
++    /* The leftmost label of the identity must be exactly "*". */
++    if (pj_strnicmp2(cert_name, "*.", 2) != 0)
++        return PJ_FALSE;
++
++    p = cert_name->ptr + 2;
++    pj_strset(&cert_suffix, p, cert_name->slen - 2);
++
++    /* At least two labels must follow the wildcard, and the label right
++     * after the wildcard must not be empty, so "*.com", "*..com" and
++     * "*.com." are all refused.
++     */
++    p = pj_strchr(&cert_suffix, '.');
++    if (p == NULL || p == cert_suffix.ptr || p == cert_suffix.ptr +
++                                                 cert_suffix.slen - 1)
++    {
++        return PJ_FALSE;
++    }
++
++    /* Strip exactly one label from the host name. That single strip is what
++     * keeps the wildcard from spanning a dot: "a.b.example.com" is left as
++     * "b.example.com", which no longer equals "example.com".
++     */
++    p = pj_strchr(host_name, '.');
++    if (p == NULL || p == host_name->ptr)
++        return PJ_FALSE;
++
++    pj_strset(&host_suffix, p + 1,
++              host_name->slen - (p + 1 - host_name->ptr));
++
++    if (pj_stricmp(&host_suffix, &cert_suffix) != 0)
++        return PJ_FALSE;
++
++    *p_wildcard = PJ_TRUE;
++    return PJ_TRUE;
++}
++
++
++/*
+  * Callback from ioqueue when asynchronous connect() operation completes.
+  */
+ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
+@@ -2084,6 +2167,7 @@ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
+         pj_str_t *remote_name;
+         pj_ssl_cert_info *serv_cert = ssl_info.remote_cert_info;
+         pj_bool_t matched = PJ_FALSE;
++        pj_bool_t wildcard = PJ_FALSE;
+         unsigned i;
+ 
+         /* Remote name may be hostname or IP address */
+@@ -2100,6 +2184,8 @@ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
+ 
+             switch (serv_cert->subj_alt_name.entry[i].type) {
+             case PJ_SSL_CERT_NAME_DNS:
++                matched = match_cert_name(remote_name, cert_name, &wildcard);
++                break;
+             case PJ_SSL_CERT_NAME_IP:
+                 matched = !pj_stricmp(remote_name, cert_name);
+                 break;
+@@ -2125,15 +2211,20 @@ static pj_bool_t on_connect_complete(pj_ssl_sock_t *ssock,
+          * certificate, try with Common Name of Subject field.
+          */
+         if (!matched) {
+-            matched = !pj_stricmp(remote_name, &serv_cert->subject.cn);
++            matched = match_cert_name(remote_name, &serv_cert->subject.cn,
++                                      &wildcard);
++        }
++
++        if (matched && wildcard) {
++            PJ_LOG(2,(tls->base.obj_name,
++                "Warning: server '%.*s' was accepted on a TLS wildcard "
++                    "certificate, which RFC 5922 (section 7.2) does not "
++                    "allow for SIP. The RFC 6125 wildcard rules were "
++                    "applied instead. Advise your SIP provider, please!",
++                (int)remote_name->slen, remote_name->ptr));
+         }
+ 
+         if (!matched) {
+-            if (pj_strnicmp2(&serv_cert->subject.cn, "*.", 2) == 0) {
+-                PJ_LOG(1,(tls->base.obj_name,
+-                    "RFC 5922 (section 7.2) does not allow TLS wildcard "
+-                        "certificates. Advise your SIP provider, please!"));
+-            }
+             ssl_info.verify_status |= PJ_SSL_CERT_EIDENTITY_NOT_MATCH;
+         }
+     }

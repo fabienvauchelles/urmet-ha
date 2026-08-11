@@ -2,7 +2,7 @@
 # Build context is addon/urmet-gateway/, nothing outside it.
 # Stage 1 compiles the pjsua2 (PJSIP 2.17) wheel from a sha256-pinned tarball
 # with the vendored wildcard-cert patch and the required config_site.h switches.
-# Recipe mirrors vendor/urmet-sdk/docs/pjsua2-install.md.
+# Recipe mirrors the urmet-sdk pjsua2 install guide.
 FROM ghcr.io/home-assistant/base-debian:trixie AS builder
 
 ARG PJPROJECT_VERSION=2.17
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /build
 # The wildcard-cert patch travels with the SDK version it was written for.
-COPY vendor/urmet-sdk/patches/pjsip-2.17-accept-wildcard-cert.patch /build/pjsip.patch
+COPY patches/pjsip-2.17-accept-wildcard-cert.patch /build/pjsip.patch
 
 # Fetch, verify against the pin, unpack. A wrong hash aborts here, never later.
 RUN curl -fsSL -o pjproject.tar.gz \
@@ -92,17 +92,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 python3-pip ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# pjsua2 wheel first, then the vendored SDK and the gateway. Both private packages
-# come from the context; aiohttp/aiortc/av/pydantic are PyPI wheels.
+# pjsua2 wheel first, then the gateway. urmet-sdk is pinned in pyproject and is
+# pulled from PyPI; aiohttp/aiortc/av/pydantic are PyPI wheels too.
 COPY --from=builder /wheels /wheels
 RUN pip3 install --no-cache-dir --break-system-packages /wheels/*.whl
 
 WORKDIR /app
-COPY vendor/urmet-sdk /app/vendor/urmet-sdk
 COPY pyproject.toml /app/pyproject.toml
 COPY urmet_gateway /app/urmet_gateway
-RUN pip3 install --no-cache-dir --break-system-packages ./vendor/urmet-sdk \
-    && pip3 install --no-cache-dir --break-system-packages .
+RUN pip3 install --no-cache-dir --break-system-packages .
 
 # Acceptance criterion for the image: the native binding loads and ffmpeg runs.
 RUN python3 -c "import pjsua2; ep = pjsua2.Endpoint(); ep.libCreate(); print('pjsua2', ep.libVersion().full)" \

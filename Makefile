@@ -20,7 +20,6 @@ HARUFF  := .venv-ha/bin/ruff
 HAMYPY  := .venv-ha/bin/mypy
 
 # --- sources ----------------------------------------------------------------
-SDK      := addon/urmet-gateway/vendor/urmet-sdk
 GATEWAY  := addon/urmet-gateway
 GW_PKG   := addon/urmet-gateway/urmet_gateway
 # The shared root test infrastructure (conftest, isolation guard, skeleton) uses
@@ -46,7 +45,6 @@ build: build-gateway build-integration build-card
 
 build-gateway: .venv
 	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install -e $(SDK)
 	$(PY) -m pip install -e $(GATEWAY)
 	$(PY) -m pip install ruff mypy pytest pytest-asyncio
 

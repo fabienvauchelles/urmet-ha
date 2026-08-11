@@ -58,11 +58,8 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
-      - name: Check out with the SDK submodule
+      - name: Check out
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
 
       - name: Build the add-on image without pushing
         uses: home-assistant/builder/actions/build-image@2026.06.0
@@ -95,11 +92,8 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
-      - name: Check out with the SDK submodule
+      - name: Check out
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
 
       - name: Build, push and sign the add-on image
         uses: home-assistant/builder/actions/build-image@2026.06.0

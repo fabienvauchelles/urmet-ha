@@ -8,19 +8,18 @@ version = "0.1.0"
 description = "Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant."
 requires-python = ">=3.12"
 license = "LicenseRef-FSL-1.1-MIT"
-authors = [{ name = "Fabien Vauchelles", email = "fabien.vauchelles@agely.care" }]
+authors = [{ name = "Fabien Vauchelles" }]
 
-# urmet-sdk is not on PyPI: it is the git submodule at vendor/urmet-sdk and is
-# installed editable from that path before this package (see the root Makefile
-# build target and addon/urmet-gateway/Dockerfile). Listing it by name here lets
-# pip see the requirement as already satisfied rather than reaching for PyPI.
+# urmet-sdk is published on PyPI and pinned so the add-on image is reproducible.
+# pjsua2 is still built from source in the Dockerfile (it is not on PyPI); the SDK
+# itself is a pure-Python wheel and installs from PyPI like the rest.
 dependencies = [
     "aiohttp>=3.9",
     "aiortc>=1.9",
     "av>=12",
     "pydantic>=2.7",
     "pydantic-settings>=2.2",
-    "urmet-sdk>=0.1.0",
+    "urmet-sdk==0.1.0",
 ]
 
 [tool.setuptools.packages.find]
