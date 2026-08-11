@@ -1,0 +1,3 @@
+[submodule "addon/urmet-gateway/vendor/urmet-sdk"]
+	path = addon/urmet-gateway/vendor/urmet-sdk
+	url = git@github.com:fabienvauchelles/urmet-sdk.git

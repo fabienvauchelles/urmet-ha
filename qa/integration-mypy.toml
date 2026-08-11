@@ -1,0 +1,13 @@
+# Mypy configuration for the integration area (custom_components/urmet). It is
+# separate from the root pyproject.toml on purpose: the gateway config loads the
+# pydantic plugin and points mypy at the vendored SDK, neither of which applies
+# here (the integration declares no requirements and uses plain dataclasses).
+# Home Assistant ships py.typed but does not re-export every websocket_api name
+# through __all__, so implicit_reexport is enabled on top of strict. Selected
+# explicitly by the Makefile integration target, never auto-discovered.
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+implicit_reexport = true
+warn_unused_configs = true

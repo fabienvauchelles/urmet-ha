@@ -1,0 +1,11 @@
+# Test-only dependencies for the custom integration (custom_components/urmet).
+# The gateway package under addon/ has its own environment; this file installs
+# Home Assistant Core and the community test harness so tests/integration/ can
+# run the integration inside a real HA event loop against a fake gateway.
+#
+# pytest-homeassistant-custom-component pins the exact homeassistant and
+# pytest-asyncio versions it was built against; the two lines below restate that
+# pin so a bare `pip install -r requirements-test.txt` is reproducible.
+pytest-homeassistant-custom-component==0.13.205
+homeassistant==2025.1.4
+pytest-asyncio==0.24.0

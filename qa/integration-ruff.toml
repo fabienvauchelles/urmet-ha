@@ -1,0 +1,15 @@
+# Ruff configuration for the integration area (custom_components/urmet plus
+# tests/integration). It is deliberately separate from the root pyproject.toml,
+# which configures the gateway package and carries the gateway's nested
+# banned-api layer rules: those must never reach the integration. The line length
+# matches the rest of the repository. This file is selected explicitly on the
+# command line by the Makefile integration targets, never auto-discovered.
+
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+
+[lint.isort]
+known-first-party = ["custom_components"]

@@ -1,0 +1,49 @@
+# Root quality-gate configuration for the whole repository.
+# The gateway package it lints lives at addon/urmet-gateway/urmet_gateway; the
+# dependency rule between that package's layers is enforced by nested ruff.toml
+# files (one per layer) that extend this file and add a banned-api list. This
+# file bans nothing globally, so the outer layers (http, media, main) may use
+# their runtime dependencies freely.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# The SDK submodule carries its own tooling and must never be linted with ours.
+extend-exclude = ["addon/urmet-gateway/vendor"]
+
+[tool.ruff.lint]
+# TID251 (banned-api) carries the dependency rule; the rest mirror the SDK set.
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "TID251"]
+
+[tool.ruff.lint.isort]
+# The gateway package and the test-suite helper are first-party, so their imports
+# group below third-party ones.
+known-first-party = ["urmet_gateway", "isolation"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+# The pydantic plugin is required so BaseSettings subclasses (the SDK's Settings,
+# the gateway's GatewaySettings) can be constructed with no arguments: their fields
+# are populated from the environment, not passed to __init__.
+plugins = ["pydantic.mypy"]
+# The vendored SDK is installed editable through a PEP 660 import hook, which mypy
+# cannot read, so point it straight at the submodule source instead. It ships
+# py.typed, so this is what gives our code the SDK's real boundary types.
+mypy_path = "addon/urmet-gateway/vendor/urmet-sdk"
+
+# The vendored SDK is graded by its own gate under its own (looser) mypy config;
+# it is consumed here as a typed dependency, not re-checked under our strict rules.
+# This uses the SDK's public types at the boundary while leaving its internals,
+# including the untyped pjsua2 native binding, to the submodule's own CI.
+[[tool.mypy.overrides]]
+module = ["urmet_sdk", "urmet_sdk.*"]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# Pin the asyncio fixture loop scope so pytest-asyncio emits no deprecation
+# warning; the gate demands a warning-free run.
+asyncio_default_fixture_loop_scope = "function"
