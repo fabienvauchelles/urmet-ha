@@ -1,6 +1,6 @@
 ---
 name: Urmet doorphone gateway
-version: "0.1.3"
+version: "0.1.5"
 slug: urmet_gateway
 description: Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant
 url: https://github.com/fabienvauchelles/urmet-ha

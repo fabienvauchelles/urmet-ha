@@ -1,5 +1,22 @@
 # Changelog
 
+Covers the whole project: the add-on gateway, the integration, and the card.
+
+## 0.1.5
+
+- You can hear the visitor: the video panel no longer stays muted, and the talk
+  microphone cancels echo, noise and gain drift, so the visitor no longer hears
+  themselves once the panel audio plays out loud on the phone.
+- The doorphone rings, the card shows the visitor, and you tap Décrocher to take
+  the call. The card never answers or joins a call on its own, so it can't latch
+  onto a stale streaming leg; it negotiates only on an explicit Décrocher or
+  Regarder, one link at a time.
+- The gateway hangs a monitor call up once its last browser leg closes, after a
+  short grace for page reloads. A stale streaming call used to linger and swallow
+  the next offer, leaving the picture blank until a watchdog tore it down.
+- The card height follows its content, removing the empty band that sat below the
+  button on a phone.
+
 ## 0.1.3
 
 - One open action: the gateway opens inside the live call when one is streaming
@@ -8,9 +25,9 @@
 
 ## 0.1.2
 
-- No gateway change. Version aligned with the card and integration release: the
-  card shows a neutral placeholder when idle instead of a camera by default, the
-  gate button reads "Portail", and no shipped example references a specific camera.
+- The card shows a neutral placeholder when idle instead of a camera by default,
+  the gate button reads "Portail", and no shipped example references a specific
+  camera. No gateway change.
 
 ## 0.1.1
 
