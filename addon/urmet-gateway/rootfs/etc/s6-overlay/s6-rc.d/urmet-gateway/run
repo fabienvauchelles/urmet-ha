@@ -1,0 +1,9 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# The gateway runs in the foreground as this longrun's own process, so s6
+# delivers SIGTERM straight to Python on stop. Python installs a SIGTERM handler
+# that runs the full SIP release path before exiting; the finish script reports
+# how that ended. The URMET_* environment is prepared by the init-urmet oneshot.
+
+bashio::log.info "Starting the Urmet doorphone gateway."
+exec python3 -m urmet_gateway.main

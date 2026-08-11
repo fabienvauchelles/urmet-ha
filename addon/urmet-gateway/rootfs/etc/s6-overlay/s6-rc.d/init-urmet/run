@@ -1,0 +1,39 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# Materialise the add-on options into the URMET_* / URMET_GW_* environment the
+# gateway reads through pydantic-settings. Values are written to the s6-overlay
+# container environment so the longrun started after this oneshot inherits them.
+# Credentials come from the add-on options (backed by Home Assistant secrets
+# when the user writes !secret in the options), never from the image.
+
+set -e
+
+readonly ENV_DIR=/run/s6/container_environment
+
+put() {
+    # put NAME VALUE -> one container-environment file, no trailing newline
+    printf '%s' "${2}" > "${ENV_DIR}/${1}"
+}
+
+log_level="$(bashio::config 'log_level')"
+
+put URMET_EMAIL             "$(bashio::config 'email')"
+put URMET_PASSWORD          "$(bashio::config 'password')"
+put URMET_DOORPHONE_NAME    "$(bashio::config 'doorphone_name')"
+put URMET_GW_LOOK_TIMEOUT_S "$(bashio::config 'look_timeout_s')"
+put URMET_GW_LOG_LEVEL      "${log_level}"
+
+# An empty MAC must not be exported: the SDK would try to parse "" as a MAC and
+# fail. Left unset, the panel identity is learned from the first ring instead.
+if bashio::config.has_value 'doorphone_mac'; then
+    put URMET_DOORPHONE_MAC "$(bashio::config 'doorphone_mac')"
+    bashio::log.info "Doorphone MAC pinned; registration can start before the first ring."
+else
+    bashio::log.info "No doorphone MAC set; the panel identity is learned from the first ring."
+fi
+
+if ! bashio::config.has_value 'email' || ! bashio::config.has_value 'password'; then
+    bashio::log.warning "Urmet cloud credentials are not set; the gateway starts but cannot register until they are entered in the add-on options."
+fi
+
+bashio::log.info "Urmet gateway environment prepared (log level: ${log_level})."

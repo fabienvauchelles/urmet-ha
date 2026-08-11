@@ -1,0 +1,40 @@
+---
+name: Urmet doorphone gateway
+version: "0.1.0"
+slug: urmet_gateway
+description: Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant
+url: https://github.com/fabienvauchelles/urmet-ha
+arch:
+  - amd64
+image: ghcr.io/fabienvauchelles/urmet-gateway
+init: false
+startup: application
+boot: auto
+# host_network is required, not a convenience: the browser reaches the media leg
+# over ICE host candidates on the LAN, and that traffic cannot pass through
+# ingress, which carries only the HTTP and WebSocket of the diagnostics page.
+host_network: true
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:doorbell-video
+homeassistant_api: false
+hassio_api: false
+apparmor: true
+options:
+  email: ""
+  password: ""
+  doorphone_mac: ""
+  doorphone_name: "Portier"
+  look_timeout_s: 30
+  log_level: info
+schema:
+  # email/password/doorphone_mac are optional so the add-on always starts and
+  # answers /api/health at once. Missing or wrong credentials surface as a
+  # Repairs issue raised by the integration, never as a Supervisor config error.
+  # The MAC is learned from the first ring when it is not pinned here.
+  email: "email?"
+  password: "password?"
+  doorphone_mac: "match(^([0-9A-Fa-f]{2}[:_]){5}[0-9A-Fa-f]{2}$)?"
+  doorphone_name: str
+  look_timeout_s: int(10,120)
+  log_level: "list(debug|info|warning|error)"

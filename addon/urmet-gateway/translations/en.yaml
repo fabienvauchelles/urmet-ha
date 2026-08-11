@@ -1,0 +1,30 @@
+---
+configuration:
+  email:
+    name: Urmet cloud email
+    description: >-
+      The email of the Urmet CallMe account the doorphone is paired with. Use
+      !secret to keep it out of the add-on config. Leave empty and the add-on
+      still starts; registration then waits until it is set.
+  password:
+    name: Urmet cloud password
+    description: >-
+      The password for that account. Prefer !secret. It never leaves the add-on
+      and is never written to the log.
+  doorphone_mac:
+    name: Doorphone MAC address
+    description: >-
+      The panel MAC, as 00:11:22:33:44:55 or 00_11_22_33_44_55. Optional: when
+      empty, the panel identity is learned from the first ring. Set it to let
+      the gateway register before the first ring.
+  doorphone_name:
+    name: Doorphone name
+    description: The label shown for the panel in Home Assistant.
+  look_timeout_s:
+    name: Look call timeout (seconds)
+    description: >-
+      How long an on-demand "look at the door" call is held before it is
+      released when nobody is watching it. Between 10 and 120.
+  log_level:
+    name: Log level
+    description: How much the gateway logs. Use debug only while troubleshooting.

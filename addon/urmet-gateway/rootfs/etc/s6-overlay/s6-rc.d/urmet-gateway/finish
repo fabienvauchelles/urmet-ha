@@ -1,0 +1,26 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# Runs strictly after the gateway process exits, and reports the release
+# outcome. It does not halt the container on a crash: s6 restarts the longrun so
+# a transient failure recovers on its own, and a Supervisor-initiated stop brings
+# the whole tree down regardless. A short floor between restarts keeps a crash
+# loop from minting SIP bindings faster than they expire.
+
+declare exit_code="${1}"
+declare signal="${2}"
+
+if [[ "${exit_code}" -eq 256 ]]; then
+    if [[ "${signal}" -eq 15 ]]; then
+        bashio::log.info "Gateway stopped by SIGTERM; the SIP release path ran (see the lines above for the binding outcome)."
+    else
+        bashio::log.warning "Gateway terminated by signal ${signal}."
+    fi
+elif [[ "${exit_code}" -eq 0 ]]; then
+    bashio::log.info "Gateway exited cleanly."
+elif [[ "${exit_code}" -eq 4 ]]; then
+    bashio::log.error "Gateway exit 4: the SIP binding could not be released; the registrar may hold a ghost binding for up to 15 minutes."
+    sleep 5
+else
+    bashio::log.warning "Gateway exited with code ${exit_code}; restarting after a short delay."
+    sleep 5
+fi
