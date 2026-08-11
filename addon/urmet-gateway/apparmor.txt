@@ -1,15 +1,24 @@
 #include <tunables/global>
 
 # AppArmor profile for the Urmet doorphone gateway add-on. The profile name must
-# match the add-on slug. It declares no Linux capability on purpose, grants
-# read and memory-map over the read-only system (so Python can load its C
-# extensions: pjsua2, av, aiortc), and confines writes to the add-on's own
+# match the add-on slug. It grants the capabilities s6-overlay v3 needs to set
+# the container up, read access across the read-only system so the s6 init and
+# the Python interpreter and its native extensions (pjsua2, av, aiortc) can be
+# opened and memory-mapped, and confines every write to the add-on's own
 # surfaces. No Home Assistant directory is mapped, so /config, /media, /share and
 # /backup are simply not present in the container.
 profile urmet_gateway flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
-  # No capability lines: the gateway needs none beyond the container defaults.
+  # s6-overlay v3 stage 0 and 1 drop privileges, fix ownership and walk the tree,
+  # so the init needs these. Without them /init fails before the service starts.
+  capability dac_override,
+  capability dac_read_search,
+  capability chown,
+  capability fowner,
+  capability setuid,
+  capability setgid,
+  capability kill,
 
   # The signals s6-overlay uses to supervise and stop the service tree.
   signal (send,receive) set=(int,term,kill,cont,hup),
@@ -17,7 +26,8 @@ profile urmet_gateway flags=(attach_disconnected,mediate_deleted) {
   # SIP/TLS to the registrar, the cloud REST plane, and the WebRTC media leg.
   network,
 
-  # s6-overlay, bashio, the shell and the coreutils the init scripts call.
+  # Execute the s6-overlay init and everything it runs. ix inherits this profile
+  # into each child, so the whole tree stays confined.
   /init ix,
   /bin/** ix,
   /usr/bin/** ix,
@@ -25,24 +35,32 @@ profile urmet_gateway flags=(attach_disconnected,mediate_deleted) {
   /command/** ix,
   /package/** ix,
   /etc/s6-overlay/** ix,
+  /etc/services.d/** ix,
+  /etc/cont-init.d/** ix,
+  /etc/cont-finish.d/** ix,
   /run/{s6,s6-rc,service}/** ix,
   /usr/lib/bashio/** ix,
 
-  # Read and memory-map the read-only system. mmap (m) is what lets the Python
-  # interpreter load its shared-object extensions.
+  # Read the read-only system. The kernel must open a script before it can exec
+  # it (ix alone does not grant read), and Python opens its whole tree to import,
+  # so a blanket read is what the official add-on and Supervisor profiles rely on.
+  / r,
+  /** r,
+
+  # Memory-map the interpreter and its shared-object extensions. mmap (m) is what
+  # lets Python load pjsua2, av and aiortc.
   /{usr/,usr/local/,}lib/** mr,
   /usr/lib/python3*/** mr,
   /usr/local/lib/python3*/** mr,
   /app/** mr,
-  /etc/** r,
-  /usr/share/** r,
-  /proc/*/{fd,status,stat,cmdline}* r,
 
-  # Writable surfaces: the add-on data dir, the process tmp, the s6 runtime.
+  # Writable surfaces: the add-on data dir, the process tmp, the s6 runtime and
+  # the shared-memory aiortc and av use for frames.
   /data/** rwk,
   /tmp/** rwk,
   /run/** rwk,
   /var/run/** rwk,
+  /dev/shm/** rwk,
   /dev/tty rw,
   /dev/null rw,
   /dev/urandom r,
