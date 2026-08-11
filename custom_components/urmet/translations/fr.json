@@ -16,6 +16,10 @@
           "host": "Hôte",
           "port": "Port"
         }
+      },
+      "confirm": {
+        "title": "Configurer le portier Urmet",
+        "description": "L'add-on urmet-gateway a été trouvé sur {host}. Confirmez pour ajouter le portier. S'il indique qu'aucun panneau n'est encore connu, sonnez une fois au portier ou renseignez doorphone_mac dans les options de l'add-on, puis confirmez à nouveau."
       }
     },
     "error": {
@@ -24,7 +28,6 @@
     },
     "abort": {
       "already_configured": "Ce portier est déjà configuré.",
-      "no_doorphone": "La gateway ne connaît encore aucun panneau. Renseignez doorphone_mac dans les options de l'add-on, ou attendez la première sonnerie, puis ajoutez-le à nouveau.",
       "reconfigure_successful": "La connexion a été mise à jour.",
       "unique_id_mismatch": "Cette gateway dessert un autre panneau que cette entrée. La reconfiguration a été annulée."
     }
@@ -42,22 +45,42 @@
   },
   "entity": {
     "event": {
-      "sonnette": { "name": "Sonnette" },
-      "ouverture": { "name": "Ouverture" }
+      "sonnette": {
+        "name": "Sonnette"
+      },
+      "ouverture": {
+        "name": "Ouverture"
+      }
     },
     "button": {
-      "porte": { "name": "Ouvrir la porte" },
-      "portail": { "name": "Portail (pas à pas)" },
-      "regarder": { "name": "Regarder la porte" },
-      "repondre": { "name": "Répondre" },
-      "raccrocher": { "name": "Raccrocher" }
+      "porte": {
+        "name": "Ouvrir la porte"
+      },
+      "portail": {
+        "name": "Portail (pas à pas)"
+      },
+      "regarder": {
+        "name": "Regarder la porte"
+      },
+      "repondre": {
+        "name": "Répondre"
+      },
+      "raccrocher": {
+        "name": "Raccrocher"
+      }
     },
     "switch": {
-      "micro": { "name": "Micro" }
+      "micro": {
+        "name": "Micro"
+      }
     },
     "binary_sensor": {
-      "sip": { "name": "Enregistrement SIP" },
-      "appel_en_cours": { "name": "Appel en cours" }
+      "sip": {
+        "name": "Enregistrement SIP"
+      },
+      "appel_en_cours": {
+        "name": "Appel en cours"
+      }
     },
     "sensor": {
       "etat_appel": {
@@ -71,12 +94,24 @@
           "error": "Erreur"
         }
       },
-      "derniere_sonnerie": { "name": "Dernière sonnerie" },
-      "sonneries": { "name": "Sonneries" },
-      "ouvertures_porte": { "name": "Ouvertures porte" },
-      "ouvertures_portail": { "name": "Ouvertures portail" },
-      "code_sip": { "name": "Code SIP" },
-      "derniere_erreur": { "name": "Dernière erreur" }
+      "derniere_sonnerie": {
+        "name": "Dernière sonnerie"
+      },
+      "sonneries": {
+        "name": "Sonneries"
+      },
+      "ouvertures_porte": {
+        "name": "Ouvertures porte"
+      },
+      "ouvertures_portail": {
+        "name": "Ouvertures portail"
+      },
+      "code_sip": {
+        "name": "Code SIP"
+      },
+      "derniere_erreur": {
+        "name": "Dernière erreur"
+      }
     }
   },
   "selector": {

@@ -36,4 +36,21 @@ if ! bashio::config.has_value 'email' || ! bashio::config.has_value 'password'; 
     bashio::log.warning "Urmet cloud credentials are not set; the gateway starts but cannot register until they are entered in the add-on options."
 fi
 
+# Announce the gateway to the Supervisor so the integration configures itself with
+# no host or port to type. host_network means Home Assistant reaches the add-on at
+# the Supervisor bridge address; the port is the gateway's fixed ingress port. The
+# service name must equal the integration domain (urmet). The integration ignores a
+# repeat announce once it is set up, so re-posting on every start is safe.
+if [[ -n "${SUPERVISOR_TOKEN:-}" ]]; then
+    if curl -fsS -X POST \
+        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d '{"service":"urmet","config":{"host":"172.30.32.1","port":8099}}' \
+        http://supervisor/discovery > /dev/null; then
+        bashio::log.info "Published gateway discovery; the integration self-configures."
+    else
+        bashio::log.warning "Discovery publish failed; add the integration by hand (host 172.30.32.1, port 8099)."
+    fi
+fi
+
 bashio::log.info "Urmet gateway environment prepared (log level: ${log_level})."

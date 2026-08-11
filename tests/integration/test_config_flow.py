@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from gateway_double import DOORPHONE_MAC, OTHER_MAC, FakeGateway
-from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import SOURCE_HASSIO, SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers.service_info.hassio import HassioServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.urmet.const import CONF_HOST, CONF_PORT, DOMAIN
@@ -40,8 +41,56 @@ async def test_user_flow_no_doorphone(hass: HomeAssistant, fake_gateway: FakeGat
         {CONF_HOST: fake_gateway.host, CONF_PORT: fake_gateway.port},
     )
 
+    # A gateway that has not seen the panel yet is a retryable state, not a
+    # dead-end: the form comes back with an actionable error, never an abort.
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "no_doorphone"}
+
+
+def _discovery(fake_gateway: FakeGateway) -> HassioServiceInfo:
+    return HassioServiceInfo(
+        config={CONF_HOST: fake_gateway.host, CONF_PORT: fake_gateway.port},
+        name="Urmet doorphone gateway",
+        slug="urmet_gateway",
+        uuid="0123456789abcdef",
+    )
+
+
+async def test_hassio_discovery_flow(hass: HomeAssistant, fake_gateway: FakeGateway) -> None:
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_HASSIO}, data=_discovery(fake_gateway)
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "confirm"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    entry = result["result"]
+    assert entry.unique_id == DOORPHONE_MAC
+    assert entry.data == {CONF_HOST: fake_gateway.host, CONF_PORT: fake_gateway.port}
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_hassio_discovery_already_configured(
+    hass: HomeAssistant, fake_gateway: FakeGateway
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=DOORPHONE_MAC,
+        data={CONF_HOST: fake_gateway.host, CONF_PORT: fake_gateway.port},
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_HASSIO}, data=_discovery(fake_gateway)
+    )
+
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "no_doorphone"
+    assert result["reason"] == "already_configured"
 
 
 async def test_user_flow_cannot_connect(hass: HomeAssistant, dead_port: int) -> None:

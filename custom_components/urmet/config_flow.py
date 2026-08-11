@@ -20,6 +20,7 @@ from homeassistant.config_entries import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.service_info.hassio import HassioServiceInfo
 
 from .client import GatewayClient, GatewayConnectionError
 from .const import (
@@ -43,6 +44,9 @@ class UrmetConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     _title: str = DEVICE_NAME
+    # Set by async_step_hassio and read by the confirm step on the same flow
+    # instance; a bare annotation avoids a mutable default shared across flows.
+    _discovered: dict[str, Any]
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
@@ -53,12 +57,50 @@ class UrmetConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             else:
                 if mac is None:
-                    return self.async_abort(reason="no_doorphone")
-                await self.async_set_unique_id(mac)
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=self._title, data=self._data(user_input))
+                    errors["base"] = "no_doorphone"
+                else:
+                    await self.async_set_unique_id(mac)
+                    self._abort_if_unique_id_configured()
+                    return self.async_create_entry(title=self._title, data=self._data(user_input))
         return self.async_show_form(
             step_id="user", data_schema=self._schema(user_input), errors=errors
+        )
+
+    async def async_step_hassio(self, discovery_info: HassioServiceInfo) -> ConfigFlowResult:
+        """Handle the add-on announcing the gateway through the Supervisor.
+
+        There is one gateway per install, so an existing entry means the panel is
+        already set up and the discovery is a no-op. Otherwise the host and port
+        the add-on published seed a confirm step, and the user never types them.
+        """
+        if self._async_current_entries():
+            return self.async_abort(reason="already_configured")
+        config = discovery_info.config
+        self._discovered = {CONF_HOST: config[CONF_HOST], CONF_PORT: config[CONF_PORT]}
+        self.context["title_placeholders"] = {"name": DEVICE_NAME}
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm the discovered gateway and probe it for the panel MAC."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                mac = await self._probe(self._discovered)
+            except GatewayConnectionError:
+                errors["base"] = "cannot_connect"
+            else:
+                if mac is None:
+                    errors["base"] = "no_doorphone"
+                else:
+                    await self.async_set_unique_id(mac)
+                    self._abort_if_unique_id_configured()
+                    return self.async_create_entry(title=self._title, data=self._discovered)
+        return self.async_show_form(
+            step_id="confirm",
+            errors=errors,
+            description_placeholders={"host": self._discovered.get(CONF_HOST, "")},
         )
 
     async def async_step_reconfigure(

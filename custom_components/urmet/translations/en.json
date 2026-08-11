@@ -16,6 +16,10 @@
           "host": "Host",
           "port": "Port"
         }
+      },
+      "confirm": {
+        "title": "Set up the Urmet doorphone",
+        "description": "The urmet-gateway add-on was found at {host}. Confirm to add the doorphone. If it reports that no panel is known yet, ring the doorphone once or set doorphone_mac in the add-on options, then confirm again."
       }
     },
     "error": {
@@ -24,7 +28,6 @@
     },
     "abort": {
       "already_configured": "This doorphone is already set up.",
-      "no_doorphone": "The gateway does not know any panel yet. Set doorphone_mac in the add-on options, or wait for the first ring, then add it again.",
       "reconfigure_successful": "The connection was updated.",
       "unique_id_mismatch": "That gateway serves a different panel than this entry. Reconfigure was cancelled."
     }
@@ -42,22 +45,42 @@
   },
   "entity": {
     "event": {
-      "sonnette": { "name": "Doorbell" },
-      "ouverture": { "name": "Door release" }
+      "sonnette": {
+        "name": "Doorbell"
+      },
+      "ouverture": {
+        "name": "Door release"
+      }
     },
     "button": {
-      "porte": { "name": "Open the door" },
-      "portail": { "name": "Gate (step by step)" },
-      "regarder": { "name": "Look at the door" },
-      "repondre": { "name": "Answer" },
-      "raccrocher": { "name": "Hang up" }
+      "porte": {
+        "name": "Open the door"
+      },
+      "portail": {
+        "name": "Gate (step by step)"
+      },
+      "regarder": {
+        "name": "Look at the door"
+      },
+      "repondre": {
+        "name": "Answer"
+      },
+      "raccrocher": {
+        "name": "Hang up"
+      }
     },
     "switch": {
-      "micro": { "name": "Microphone" }
+      "micro": {
+        "name": "Microphone"
+      }
     },
     "binary_sensor": {
-      "sip": { "name": "SIP registration" },
-      "appel_en_cours": { "name": "Call in progress" }
+      "sip": {
+        "name": "SIP registration"
+      },
+      "appel_en_cours": {
+        "name": "Call in progress"
+      }
     },
     "sensor": {
       "etat_appel": {
@@ -71,12 +94,24 @@
           "error": "Error"
         }
       },
-      "derniere_sonnerie": { "name": "Last ring" },
-      "sonneries": { "name": "Rings" },
-      "ouvertures_porte": { "name": "Door releases" },
-      "ouvertures_portail": { "name": "Gate steps" },
-      "code_sip": { "name": "SIP code" },
-      "derniere_erreur": { "name": "Last error" }
+      "derniere_sonnerie": {
+        "name": "Last ring"
+      },
+      "sonneries": {
+        "name": "Rings"
+      },
+      "ouvertures_porte": {
+        "name": "Door releases"
+      },
+      "ouvertures_portail": {
+        "name": "Gate steps"
+      },
+      "code_sip": {
+        "name": "SIP code"
+      },
+      "derniere_erreur": {
+        "name": "Last error"
+      }
     }
   },
   "selector": {
