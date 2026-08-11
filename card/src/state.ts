@@ -46,6 +46,16 @@ export interface HassEntityRegistryEntry {
   entity_id: string;
   platform?: string;
   config_entry_id?: string | null;
+  device_id?: string | null;
+}
+
+// The device registry entry, the only reliable place to read a config entry id:
+// the frontend entity registry drops config_entry_id on some Home Assistant
+// builds, but the device always carries the entry that owns it.
+export interface HassDeviceRegistryEntry {
+  id: string;
+  primary_config_entry?: string | null;
+  config_entries?: string[];
 }
 
 export type UnsubscribeFunc = () => Promise<void>;
@@ -57,6 +67,7 @@ export interface HassConnection {
 export interface HomeAssistant {
   states: Record<string, HassEntityState>;
   entities: Record<string, HassEntityRegistryEntry>;
+  devices?: Record<string, HassDeviceRegistryEntry>;
   connection: HassConnection;
   callWS<T>(message: Record<string, unknown>): Promise<T>;
   callService(domain: string, service: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -151,10 +162,20 @@ export function deriveViewModel(state?: StateWire): CardViewModel {
 
 // --- Entry resolution and change tracking ----------------------------------
 
+// The config entry that owns an entity: its own config_entry_id when the
+// frontend kept it, otherwise the entry read off the entity's device.
+function entryIdForEntity(hass: HomeAssistant, entry: HassEntityRegistryEntry): string | undefined {
+  if (entry.config_entry_id) return entry.config_entry_id;
+  const device = entry.device_id ? hass.devices?.[entry.device_id] : undefined;
+  return device?.primary_config_entry ?? device?.config_entries?.[0] ?? undefined;
+}
+
 export function findEntryIds(hass: HomeAssistant): string[] {
   const ids = new Set<string>();
   for (const entry of Object.values(hass.entities ?? {})) {
-    if (entry.platform === "urmet" && entry.config_entry_id) ids.add(entry.config_entry_id);
+    if (entry.platform !== "urmet") continue;
+    const entryId = entryIdForEntity(hass, entry);
+    if (entryId) ids.add(entryId);
   }
   return [...ids];
 }
@@ -162,20 +183,28 @@ export function findEntryIds(hass: HomeAssistant): string[] {
 export function findDoorbellEntity(hass: HomeAssistant, entryId?: string): string | undefined {
   for (const entry of Object.values(hass.entities ?? {})) {
     if (entry.platform !== "urmet") continue;
-    if (entryId && entry.config_entry_id && entry.config_entry_id !== entryId) continue;
-    if (entry.entity_id.startsWith("event.") && entry.entity_id.includes("sonnette")) return entry.entity_id;
+    if (entryId && entryIdForEntity(hass, entry) !== entryId) continue;
+    if (entry.entity_id.startsWith("event.") && entry.entity_id.includes("doorbell")) return entry.entity_id;
   }
   return undefined;
 }
 
-export type EntryResolution = { entryId: string } | { error: string };
+// The three outcomes of resolving the card's entry. ``pending`` is neither a
+// binding nor a fault: urmet entities exist but the device registry that
+// carries their entry id has not reached the frontend yet, so the caller must
+// retry on the next hass push rather than freeze an error banner.
+export type EntryResolution = { entryId: string } | { error: string } | { pending: true };
 
 export function resolveEntry(config: UrmetCardConfig, hass: HomeAssistant): EntryResolution {
   if (config.entry_id) return { entryId: config.entry_id };
   const ids = findEntryIds(hass);
   if (ids.length === 1) return { entryId: ids[0] };
-  if (ids.length === 0) return { error: "Aucune entrée Portier Urmet n'est configurée." };
-  return { error: "Plusieurs portiers configurés: précisez entry_id dans la configuration de la carte." };
+  if (ids.length > 1) {
+    return { error: "Plusieurs portiers configurés: précisez entry_id dans la configuration de la carte." };
+  }
+  const hasEntities = Object.values(hass.entities ?? {}).some((entry) => entry.platform === "urmet");
+  if (hasEntities) return { pending: true };
+  return { error: "Aucune entrée Portier Urmet n'est configurée." };
 }
 
 export function trackedIds(config: UrmetCardConfig | undefined, doorbell?: string): string[] {

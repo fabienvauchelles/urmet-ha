@@ -72,8 +72,11 @@ export class LinkController implements ReactiveController {
 
   ensureStarted(): void {
     const host = this.host as unknown as { isConnected: boolean };
-    if (!host.isConnected || this.unsub || this.subscribing || !this.hass || this.resolveError) return;
+    if (!host.isConnected || this.unsub || this.subscribing || !this.hass) return;
+    // Re-resolve on every push while unsubscribed so a late registry heals.
     const resolved = resolveEntry(this.config ?? { type: "" }, this.hass);
+    this.resolveError = undefined;
+    if ("pending" in resolved) return;
     if ("error" in resolved) {
       this.resolveError = resolved.error;
       return;
