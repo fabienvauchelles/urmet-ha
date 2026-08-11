@@ -1,0 +1,148 @@
+# Portier notification automations.
+#
+# The content of this file is MERGED into /config/automations.yaml on the box
+# (a YAML list). See README.md. The webhook deploy reloads automations, so no
+# core restart is needed once the integration and the dashboard already exist.
+#
+# Four concerns, five blocks:
+#   1. the actionable ring notification (block 1) and its open-action handler
+#      (block 2) form one feature: a ring puts the frontyard picture and two
+#      actions on the phone, deep-links the /portier/appel view, and never opens
+#      anything on its own;
+#   2. the wake-a-screen popup (block 3);
+#   3. the SIP-down alert (block 4);
+#   4. the unconfirmed-release repair notification (block 5).
+#
+# All notifications go through notify.alarme_diffusion, the single fan-out point:
+# adding a second phone is one line there, not an edit in five automations. The
+# picture is always camera.frontyard, never the panel, because answering the
+# panel to grab a still would stop the ring on the household handsets.
+
+# 1. Ring -> actionable notification. Does NOT open anything by itself.
+- id: portier_ring_notification
+  alias: "Portier - Sonnerie au portail"
+  mode: single
+  max_exceeded: silent
+  triggers:
+    - trigger: state
+      entity_id: event.portier_sonnette
+      not_to:
+        - unavailable
+        - unknown
+  variables:
+    vue: /portier/appel
+  actions:
+    - action: notify.alarme_diffusion
+      data:
+        title: "🔔 Quelqu'un sonne au portail"
+        message: "Sonnerie à {{ now().strftime('%H:%M:%S') }}."
+        data:
+          ttl: 0
+          priority: high
+          channel: portier_sonnerie
+          importance: high
+          notification_icon: mdi:doorbell-video
+          color: '#1E88E5'
+          tag: portier
+          image: /api/camera_proxy/camera.frontyard
+          clickAction: "{{ vue }}"
+          actions:
+            - action: URI
+              title: Voir
+              uri: "{{ vue }}"
+            - action: PORTIER_OPEN_DOOR
+              title: Ouvrir la porte
+              authenticationRequired: true
+
+# 1b. Handler for the open action. authenticationRequired plus a 60 s freshness
+# guard, so a replayed notification action cannot open the door an hour later.
+- id: portier_open_from_notification
+  alias: "Portier - Ouverture depuis la notification"
+  mode: single
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: PORTIER_OPEN_DOOR
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ states('event.portier_sonnette') not in ['unknown', 'unavailable']
+           and (as_timestamp(now()) - as_timestamp(states('event.portier_sonnette'), 0)) < 60 }}
+  actions:
+    - action: urmet.open
+      data:
+        actuator: door
+
+# 2. Wake-a-screen popup: wake the phone and bring the appel view to the front.
+# command_webview only navigates while the app is active, so it runs first, then
+# command_screen_on wakes the display onto that view.
+- id: portier_wake_screen
+  alias: "Portier - Réveil de l'écran"
+  mode: single
+  max_exceeded: silent
+  triggers:
+    - trigger: state
+      entity_id: event.portier_sonnette
+      not_to:
+        - unavailable
+        - unknown
+  actions:
+    - action: notify.alarme_diffusion
+      data:
+        message: command_webview
+        data:
+          command: /portier/appel
+    - action: notify.alarme_diffusion
+      data:
+        message: command_screen_on
+
+# 3. SIP-down alert. for: 5 min because a gateway restart flaps the sensor and
+# the add-on restarts on every update.
+- id: portier_binding_lost
+  alias: "Portier - Enregistrement SIP perdu"
+  mode: single
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.portier_sip
+      from: "on"
+      to: "off"
+      for: "00:05:00"
+  actions:
+    - action: notify.alarme_diffusion
+      data:
+        title: "Portier hors ligne"
+        message: "Le portier n'est plus enregistré depuis 5 minutes (code {{ states('sensor.portier_code_sip') }})."
+        data:
+          channel: portier_etat
+          tag: portier_sip
+
+# 4. Unconfirmed-release repair notification. The gateway publishes a
+# registration event with released:false when it could not release its SIP
+# binding on shutdown; the integration mirrors that onto sensor.portier_derniere_erreur
+# (WP8) and raises the binding_not_released repair (WP9). This match on the
+# error text (English "releas", French "libér") turns it into a phone push, since
+# a repair issue alone is silent. If WP8 changes the surfaced wording, update the
+# match below.
+- id: portier_binding_not_released
+  alias: "Portier - Liaison SIP non libérée"
+  mode: single
+  triggers:
+    - trigger: state
+      entity_id: sensor.portier_derniere_erreur
+      not_to:
+        - unavailable
+        - unknown
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ 'releas' in (states('sensor.portier_derniere_erreur') | lower)
+           or 'libér' in (states('sensor.portier_derniere_erreur') | lower) }}
+  actions:
+    - action: notify.alarme_diffusion
+      data:
+        title: "Portier - liaison SIP non libérée"
+        message: "La liaison SIP n'a pas pu être libérée, le portier peut rester dégradé jusqu'à 15 minutes."
+        data:
+          channel: portier_etat
+          tag: portier_released

@@ -1,0 +1,45 @@
+# script.portier_test: puts the whole notification chain on the phone.
+#
+# The content of this file is MERGED into /config/scripts.yaml on the box (a YAML
+# dict keyed by script id). See README.md. It reproduces, with tag portier_test
+# so it never collides with a real ring, exactly what a ring sends: the frontyard
+# picture, both actions, the /portier/appel deep link, and the wake-a-screen pair.
+#
+# Tapping "Ouvrir la porte" here is inert unless a real ring happened in the last
+# 60 s, because the open handler carries that same freshness guard.
+portier_test:
+  alias: "Portier - Test de la chaîne de notification"
+  icon: mdi:doorbell-video
+  mode: single
+  sequence:
+    - variables:
+        vue: /portier/appel
+    - action: notify.alarme_diffusion
+      data:
+        title: "🔔 Test portier"
+        message: "Chaîne de notification du portier, {{ now().strftime('%H:%M:%S') }}."
+        data:
+          ttl: 0
+          priority: high
+          channel: portier_sonnerie
+          importance: high
+          notification_icon: mdi:doorbell-video
+          color: '#1E88E5'
+          tag: portier_test
+          image: /api/camera_proxy/camera.frontyard
+          clickAction: "{{ vue }}"
+          actions:
+            - action: URI
+              title: Voir
+              uri: "{{ vue }}"
+            - action: PORTIER_OPEN_DOOR
+              title: Ouvrir la porte
+              authenticationRequired: true
+    - action: notify.alarme_diffusion
+      data:
+        message: command_webview
+        data:
+          command: "{{ vue }}"
+    - action: notify.alarme_diffusion
+      data:
+        message: command_screen_on
