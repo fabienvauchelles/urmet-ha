@@ -1,0 +1,50 @@
+# Action definitions for the Urmet doorphone (DESIGN 6.5). Names and
+# descriptions live in strings.json / translations; this file declares the
+# fields and their selectors for the UI.
+
+answer:
+  fields:
+    call_id:
+      required: false
+      example: "a1b2c3"
+      selector:
+        text:
+
+hang_up:
+  fields:
+    call_id:
+      required: false
+      example: "a1b2c3"
+      selector:
+        text:
+
+look:
+  fields:
+    want_video:
+      required: false
+      default: true
+      selector:
+        boolean:
+
+open:
+  fields:
+    actuator:
+      required: true
+      selector:
+        select:
+          translation_key: actuator
+          options:
+            - door
+            - gate
+    call_id:
+      required: false
+      example: "a1b2c3"
+      selector:
+        text:
+
+set_microphone:
+  fields:
+    muted:
+      required: true
+      selector:
+        boolean:

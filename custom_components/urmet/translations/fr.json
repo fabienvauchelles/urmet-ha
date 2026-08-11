@@ -1,0 +1,168 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connexion à l'add-on gateway Urmet",
+        "description": "Renseignez l'hôte et le port de l'add-on urmet-gateway. L'hôte par défaut est la passerelle du bridge Supervisor.",
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer la connexion à la gateway Urmet",
+        "description": "Mettez à jour l'hôte et le port. Le portier doit rester le même panneau qu'avant.",
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de joindre l'add-on gateway à cet hôte et ce port.",
+      "no_doorphone": "La gateway ne connaît encore aucun panneau. Renseignez doorphone_mac dans les options de l'add-on, ou attendez la première sonnerie, puis réessayez."
+    },
+    "abort": {
+      "already_configured": "Ce portier est déjà configuré.",
+      "no_doorphone": "La gateway ne connaît encore aucun panneau. Renseignez doorphone_mac dans les options de l'add-on, ou attendez la première sonnerie, puis ajoutez-le à nouveau.",
+      "reconfigure_successful": "La connexion a été mise à jour.",
+      "unique_id_mismatch": "Cette gateway dessert un autre panneau que cette entrée. La reconfiguration a été annulée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options du portier Urmet",
+        "data": {
+          "ring_coalesce_s": "Fenêtre de regroupement des sonneries (secondes)",
+          "show_tech_panel": "Afficher le panneau technique sur la carte"
+        }
+      }
+    }
+  },
+  "entity": {
+    "event": {
+      "sonnette": { "name": "Sonnette" },
+      "ouverture": { "name": "Ouverture" }
+    },
+    "button": {
+      "porte": { "name": "Ouvrir la porte" },
+      "portail": { "name": "Portail (pas à pas)" },
+      "regarder": { "name": "Regarder la porte" },
+      "repondre": { "name": "Répondre" },
+      "raccrocher": { "name": "Raccrocher" }
+    },
+    "switch": {
+      "micro": { "name": "Micro" }
+    },
+    "binary_sensor": {
+      "sip": { "name": "Enregistrement SIP" },
+      "appel_en_cours": { "name": "Appel en cours" }
+    },
+    "sensor": {
+      "etat_appel": {
+        "name": "État de l'appel",
+        "state": {
+          "idle": "Inactif",
+          "ringing": "Sonnerie",
+          "connecting": "Connexion",
+          "streaming": "En cours",
+          "ended": "Terminé",
+          "error": "Erreur"
+        }
+      },
+      "derniere_sonnerie": { "name": "Dernière sonnerie" },
+      "sonneries": { "name": "Sonneries" },
+      "ouvertures_porte": { "name": "Ouvertures porte" },
+      "ouvertures_portail": { "name": "Ouvertures portail" },
+      "code_sip": { "name": "Code SIP" },
+      "derniere_erreur": { "name": "Dernière erreur" }
+    }
+  },
+  "selector": {
+    "actuator": {
+      "options": {
+        "door": "Porte",
+        "gate": "Portail"
+      }
+    }
+  },
+  "services": {
+    "answer": {
+      "name": "Répondre",
+      "description": "Répond à l'appel entrant. Répond au dialogue nommé, ou au seul dialogue en sonnerie s'il n'y en a qu'un.",
+      "fields": {
+        "call_id": {
+          "name": "Identifiant d'appel",
+          "description": "Le dialogue auquel répondre. Laissez vide pour répondre au seul appel en sonnerie."
+        }
+      }
+    },
+    "hang_up": {
+      "name": "Raccrocher",
+      "description": "Raccroche un appel. Termine le dialogue nommé, ou le dialogue en cours s'il n'y en a qu'un.",
+      "fields": {
+        "call_id": {
+          "name": "Identifiant d'appel",
+          "description": "Le dialogue à raccrocher. Laissez vide pour raccrocher l'appel en cours."
+        }
+      }
+    },
+    "look": {
+      "name": "Regarder la porte",
+      "description": "Place un appel à la demande vers le panneau et renvoie son identifiant. La gateway le libère automatiquement si aucune session média ne s'y attache.",
+      "fields": {
+        "want_video": {
+          "name": "Demander la vidéo",
+          "description": "Demander une image au panneau en plus du son."
+        }
+      }
+    },
+    "open": {
+      "name": "Ouvrir",
+      "description": "Déclenche la porte ou le portail. Renvoie si le panneau a accusé réception ; une ouverture non confirmée signifie que l'issue est inconnue, jamais que la porte s'est ouverte.",
+      "fields": {
+        "actuator": {
+          "name": "Actionneur",
+          "description": "Quel actionneur déclencher."
+        },
+        "call_id": {
+          "name": "Identifiant d'appel",
+          "description": "Envoyer la commande dans ce dialogue. Laissez vide pour répondre à une sonnerie ou placer un court appel audio d'abord."
+        }
+      }
+    },
+    "set_microphone": {
+      "name": "Régler le micro",
+      "description": "Coupe ou active le micro vers le panneau.",
+      "fields": {
+        "muted": {
+          "name": "Coupé",
+          "description": "Vrai coupe le micro, faux l'ouvre."
+        }
+      }
+    }
+  },
+  "issues": {
+    "unconfirmed_release": {
+      "title": "Enregistrement SIP non libéré",
+      "description": "La passerelle du portier n'a pas pu confirmer la libération de son enregistrement SIP. Le portier peut rester dégradé jusqu'à 15 minutes, le temps que l'ancien enregistrement expire, puis il se rétablit tout seul."
+    },
+    "auth_failure": {
+      "title": "Connexion au cloud du portier refusée",
+      "description": "Le cloud Urmet a refusé les identifiants avec lesquels la passerelle s'enregistre (réponse 401 ou 403). Mettez à jour l'e-mail et le mot de passe dans les options de l'add-on urmet-gateway, puis redémarrez l'add-on. Ces identifiants vivent dans l'add-on, pas dans Home Assistant : il n'y a donc pas de reconfiguration ici."
+    },
+    "calls_not_routed": {
+      "title": "Appels refusés avant routage",
+      "description": "L'enregistrement est sain mais chaque appel est refusé par un 503 avant d'être routé. Vérifiez qu'aucun proxy sortant ni en-tête Route n'a été introduit entre la passerelle et le cloud Urmet, puis lancez cette réparation pour recharger l'intégration.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Recharger l'intégration du portier",
+            "description": "Ceci recharge l'intégration, qui relit la configuration de la passerelle. Confirmez une fois que vous avez vérifié qu'aucun proxy sortant ni en-tête Route ne subsiste."
+          }
+        }
+      }
+    }
+  }
+}

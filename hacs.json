@@ -1,0 +1,7 @@
+{
+  "name": "Portier Urmet",
+  "zip_release": true,
+  "filename": "urmet.zip",
+  "homeassistant": "2026.8.0",
+  "render_readme": true
+}

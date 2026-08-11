@@ -1,0 +1,168 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to the Urmet gateway add-on",
+        "description": "Enter the host and port of the urmet-gateway add-on. The default host is the Supervisor bridge gateway.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure the Urmet gateway connection",
+        "description": "Update the host and port. The doorphone must be the same panel as before.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the gateway add-on at that host and port.",
+      "no_doorphone": "The gateway does not know any panel yet. Set doorphone_mac in the add-on options, or wait for the first ring, then try again."
+    },
+    "abort": {
+      "already_configured": "This doorphone is already set up.",
+      "no_doorphone": "The gateway does not know any panel yet. Set doorphone_mac in the add-on options, or wait for the first ring, then add it again.",
+      "reconfigure_successful": "The connection was updated.",
+      "unique_id_mismatch": "That gateway serves a different panel than this entry. Reconfigure was cancelled."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Urmet doorphone options",
+        "data": {
+          "ring_coalesce_s": "Ring coalescing window (seconds)",
+          "show_tech_panel": "Show the technical panel on the card"
+        }
+      }
+    }
+  },
+  "entity": {
+    "event": {
+      "sonnette": { "name": "Doorbell" },
+      "ouverture": { "name": "Door release" }
+    },
+    "button": {
+      "porte": { "name": "Open the door" },
+      "portail": { "name": "Gate (step by step)" },
+      "regarder": { "name": "Look at the door" },
+      "repondre": { "name": "Answer" },
+      "raccrocher": { "name": "Hang up" }
+    },
+    "switch": {
+      "micro": { "name": "Microphone" }
+    },
+    "binary_sensor": {
+      "sip": { "name": "SIP registration" },
+      "appel_en_cours": { "name": "Call in progress" }
+    },
+    "sensor": {
+      "etat_appel": {
+        "name": "Call state",
+        "state": {
+          "idle": "Idle",
+          "ringing": "Ringing",
+          "connecting": "Connecting",
+          "streaming": "Streaming",
+          "ended": "Ended",
+          "error": "Error"
+        }
+      },
+      "derniere_sonnerie": { "name": "Last ring" },
+      "sonneries": { "name": "Rings" },
+      "ouvertures_porte": { "name": "Door releases" },
+      "ouvertures_portail": { "name": "Gate steps" },
+      "code_sip": { "name": "SIP code" },
+      "derniere_erreur": { "name": "Last error" }
+    }
+  },
+  "selector": {
+    "actuator": {
+      "options": {
+        "door": "Door",
+        "gate": "Gate"
+      }
+    }
+  },
+  "services": {
+    "answer": {
+      "name": "Answer",
+      "description": "Answer the ringing call. Answers the named dialog, or the only ringing dialog if there is one.",
+      "fields": {
+        "call_id": {
+          "name": "Call id",
+          "description": "The dialog to answer. Leave empty to answer the only ringing call."
+        }
+      }
+    },
+    "hang_up": {
+      "name": "Hang up",
+      "description": "Hang up a call. Ends the named dialog, or the live dialog if there is one.",
+      "fields": {
+        "call_id": {
+          "name": "Call id",
+          "description": "The dialog to hang up. Leave empty to hang up the live call."
+        }
+      }
+    },
+    "look": {
+      "name": "Look at the door",
+      "description": "Place an on-demand call to the panel and return its id. The gateway releases it automatically if no media session attaches.",
+      "fields": {
+        "want_video": {
+          "name": "Request video",
+          "description": "Ask the panel for a picture as well as sound."
+        }
+      }
+    },
+    "open": {
+      "name": "Open",
+      "description": "Fire the door or the gate. Returns whether the panel acknowledged; an unacknowledged open means the outcome is unknown, never that the door opened.",
+      "fields": {
+        "actuator": {
+          "name": "Actuator",
+          "description": "Which actuator to fire."
+        },
+        "call_id": {
+          "name": "Call id",
+          "description": "Send the command inside this dialog. Leave empty to answer a ring or place a short audio call first."
+        }
+      }
+    },
+    "set_microphone": {
+      "name": "Set microphone",
+      "description": "Mute or unmute the microphone towards the panel.",
+      "fields": {
+        "muted": {
+          "name": "Muted",
+          "description": "True mutes the microphone, false opens it."
+        }
+      }
+    }
+  },
+  "issues": {
+    "unconfirmed_release": {
+      "title": "SIP binding not released",
+      "description": "The doorphone gateway could not confirm that its SIP binding was released. The doorbell may be degraded for up to 15 minutes while the old binding expires, then it recovers on its own."
+    },
+    "auth_failure": {
+      "title": "Doorphone cloud sign-in rejected",
+      "description": "The Urmet cloud rejected the credentials the gateway registers with (a 401 or 403 response). Update the email and password in the urmet-gateway add-on options and restart the add-on. These credentials live in the add-on, not in Home Assistant, so there is no reconfigure flow here."
+    },
+    "calls_not_routed": {
+      "title": "Calls refused before routing",
+      "description": "Registration is healthy but every call is refused with a 503 before it is routed. Check that no outbound proxy or Route header was introduced between the gateway and the Urmet cloud, then run this repair to reload the integration.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Reload the doorphone integration",
+            "description": "This reloads the integration, which re-reads the gateway configuration. Confirm once you have checked that no outbound proxy or Route header remains."
+          }
+        }
+      }
+    }
+  }
+}
