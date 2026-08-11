@@ -1,0 +1,12 @@
+# http is the outermost layer below main. It may import domain, usecases and
+# aiohttp. It calls usecases; it never reaches into the sip or media adapters,
+# and it never names aiortc, av or the native stack.
+extend = "../../../../pyproject.toml"
+
+[lint.flake8-tidy-imports.banned-api]
+"aiortc".msg = "http must not import aiortc: WebRTC lives in the media layer"
+"av".msg = "http must not import av: media decoding lives in the media layer"
+"pjsua2".msg = "http must never import pjsua2: only main names the native transport"
+"urmet_gateway.sip".msg = "http must not import sip: call usecases, which the sip adapter feeds"
+"urmet_gateway.media".msg = "http must not import media: call usecases, which the media adapter feeds"
+"urmet_gateway.main".msg = "http must not import main: main is the composition root"

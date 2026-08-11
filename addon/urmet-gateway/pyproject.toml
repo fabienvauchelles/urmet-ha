@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "urmet-gateway"
+version = "0.1.0"
+description = "Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant."
+requires-python = ">=3.12"
+license = "LicenseRef-FSL-1.1-MIT"
+authors = [{ name = "Fabien Vauchelles", email = "fabien.vauchelles@agely.care" }]
+
+# urmet-sdk is not on PyPI: it is the git submodule at vendor/urmet-sdk and is
+# installed editable from that path before this package (see the root Makefile
+# build target and addon/urmet-gateway/Dockerfile). Listing it by name here lets
+# pip see the requirement as already satisfied rather than reaching for PyPI.
+dependencies = [
+    "aiohttp>=3.9",
+    "aiortc>=1.9",
+    "av>=12",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "urmet-sdk>=0.1.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["urmet_gateway*"]
+exclude = ["vendor*", "tests*"]

@@ -1,0 +1,14 @@
+# domain is the innermost layer: it imports nothing from the project and no
+# framework. Dependency rule: main -> http -> usecases -> domain, sip/media -> usecases.
+extend = "../../../../pyproject.toml"
+
+[lint.flake8-tidy-imports.banned-api]
+"aiohttp".msg = "domain must not import aiohttp: it is the innermost layer and depends on no framework"
+"aiortc".msg = "domain must not import aiortc: it is the innermost layer and depends on no framework"
+"av".msg = "domain must not import av: it is the innermost layer and depends on no framework"
+"pjsua2".msg = "domain must never import pjsua2: only main names the native transport"
+"urmet_gateway.usecases".msg = "domain must not import usecases: dependencies point inward only"
+"urmet_gateway.sip".msg = "domain must not import sip: dependencies point inward only"
+"urmet_gateway.media".msg = "domain must not import media: dependencies point inward only"
+"urmet_gateway.http".msg = "domain must not import http: dependencies point inward only"
+"urmet_gateway.main".msg = "domain must not import main: dependencies point inward only"

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Urmet gateway diagnostics</title>
+    <style>
+      :root { color-scheme: light dark; --ok: #2e7d32; --bad: #c62828; --muted: #888; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font: 14px/1.5 system-ui, sans-serif; padding: 1rem; }
+      h1 { font-size: 1.1rem; margin: 0 0 .75rem; }
+      .grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .panel { border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 8px; padding: .75rem; }
+      .panel h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 .5rem; }
+      .row { display: flex; justify-content: space-between; gap: 1rem; padding: .15rem 0; }
+      .row span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+      .dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; background: var(--muted); vertical-align: middle; }
+      .dot.up { background: var(--ok); } .dot.down { background: var(--bad); }
+      table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+      th, td { text-align: left; padding: .2rem .4rem; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+      .empty { color: var(--muted); font-style: italic; }
+      #link { margin-left: .5rem; font-size: .8rem; color: var(--muted); }
+      .scroll { overflow-x: auto; }
+    </style>
+  </head>
+  <body>
+    <h1>Urmet gateway <span id="link"></span></h1>
+    <div class="grid">
+      <section class="panel" id="registration">
+        <h2>Registration</h2>
+        <div class="row"><span>Bound</span><span id="reg-bound"><span class="dot"></span></span></div>
+        <div class="row"><span>SIP code</span><span id="reg-code">-</span></div>
+        <div class="row"><span>Reason</span><span id="reg-reason">-</span></div>
+        <div class="row"><span>Doorphone</span><span id="reg-mac">-</span></div>
+        <div class="row"><span>Microphone</span><span id="reg-mic">-</span></div>
+      </section>
+      <section class="panel">
+        <h2>Live calls</h2>
+        <div class="scroll"><table><thead><tr><th>id</th><th>state</th><th>dir</th></tr></thead><tbody id="calls"></tbody></table></div>
+      </section>
+      <section class="panel">
+        <h2>Sessions</h2>
+        <div class="scroll"><table><thead><tr><th>id</th><th>state</th><th>conn</th><th>reason</th></tr></thead><tbody id="sessions"></tbody></table></div>
+      </section>
+      <section class="panel">
+        <h2>Diagnostics</h2>
+        <div class="row"><span>Director failures</span><span id="director">-</span></div>
+        <div class="row"><span>Settings</span><span id="settings">-</span></div>
+      </section>
+      <section class="panel">
+        <h2>Event stream</h2>
+        <div class="row"><span>Connection</span><span id="stream"><span class="dot"></span></span></div>
+        <div class="scroll"><table><thead><tr><th>at</th><th>type</th><th>detail</th></tr></thead><tbody id="log"></tbody></table></div>
+      </section>
+    </div>
+    <script src="diag.js"></script>
+  </body>
+</html>

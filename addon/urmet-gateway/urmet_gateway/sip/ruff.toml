@@ -1,0 +1,13 @@
+# sip adapts the SDK transport and feeds usecases. It may import domain and
+# usecases. It reaches the native stack only through the injected SDK object, so
+# pjsua2 is banned here too; the media frameworks belong to the media layer.
+extend = "../../../../pyproject.toml"
+
+[lint.flake8-tidy-imports.banned-api]
+"aiohttp".msg = "sip must not import aiohttp: the HTTP surface lives in the http layer"
+"aiortc".msg = "sip must not import aiortc: WebRTC lives in the media layer"
+"av".msg = "sip must not import av: media decoding lives in the media layer"
+"pjsua2".msg = "sip must never import pjsua2: it crosses into the native stack only through the injected SDK transport"
+"urmet_gateway.media".msg = "sip must not import media: both are adapters that feed usecases independently"
+"urmet_gateway.http".msg = "sip must not import http: http is an outer layer"
+"urmet_gateway.main".msg = "sip must not import main: main is the composition root"

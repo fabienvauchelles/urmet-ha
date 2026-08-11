@@ -1,0 +1,11 @@
+# media owns the WebRTC and codec path and feeds usecases. It may import domain,
+# usecases, aiortc and av (its reason to exist). It never opens the HTTP surface,
+# never touches the SIP adapter, and never names the native stack.
+extend = "../../../../pyproject.toml"
+
+[lint.flake8-tidy-imports.banned-api]
+"aiohttp".msg = "media must not import aiohttp: the HTTP surface lives in the http layer"
+"pjsua2".msg = "media must never import pjsua2: native taps are reached through domain ports fed by the sip layer"
+"urmet_gateway.sip".msg = "media must not import sip: both are adapters that feed usecases independently"
+"urmet_gateway.http".msg = "media must not import http: http is an outer layer"
+"urmet_gateway.main".msg = "media must not import main: main is the composition root"

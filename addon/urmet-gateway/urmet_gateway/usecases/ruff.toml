@@ -1,0 +1,13 @@
+# usecases imports domain only. It never names a framework, so aiortc and av
+# stay out of the business rules; sip, media and http feed usecases, not the reverse.
+extend = "../../../../pyproject.toml"
+
+[lint.flake8-tidy-imports.banned-api]
+"aiohttp".msg = "usecases must not import aiohttp: keep the framework out of the business rules"
+"aiortc".msg = "usecases must not import aiortc: keep the framework out of the business rules"
+"av".msg = "usecases must not import av: keep the framework out of the business rules"
+"pjsua2".msg = "usecases must never import pjsua2: only main names the native transport"
+"urmet_gateway.sip".msg = "usecases must not import sip: sip feeds usecases through domain ports"
+"urmet_gateway.media".msg = "usecases must not import media: media feeds usecases through domain ports"
+"urmet_gateway.http".msg = "usecases must not import http: http calls usecases, not the reverse"
+"urmet_gateway.main".msg = "usecases must not import main: main is the composition root"
