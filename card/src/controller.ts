@@ -12,6 +12,7 @@ import {
 } from "./state";
 import * as gw from "./link/hass";
 import { browserDeps, UnsupportedCodecError, WebrtcLink } from "./link/webrtc";
+import { RingClock } from "./ring_clock";
 
 // The link use case: subscription, the answer/look/negotiate/teardown state
 // machine, the mic path, the ring counter. It lives outside the element so the
@@ -27,7 +28,6 @@ export class LinkController implements ReactiveController {
   resolveError?: string;
   talking = false;
   hasRemote = false;
-  ringSeconds = 0;
   stream?: MediaStream;
   sessionId?: string;
   ignoredCallId?: string;
@@ -40,12 +40,7 @@ export class LinkController implements ReactiveController {
   private link?: WebrtcLink;
   private pendingCallId: string | null = null;
   private autoStarted = false;
-  // Armed until the first state after the card mounts: a ring already in progress
-  // when we arrive (a notification tap) is answered on sight; a ring that starts
-  // while the card is already open only shows the banner.
-  private answerArmed = true;
-  private ringTimer?: ReturnType<typeof setInterval>;
-  private ringStart?: number;
+  private readonly ringClock = new RingClock(() => this.host.requestUpdate());
 
   constructor(private readonly host: ReactiveControllerHost) {
     host.addController(this);
@@ -65,7 +60,7 @@ export class LinkController implements ReactiveController {
       void this.unsub().catch((error) => console.debug("urmet: unsubscribe failed", error));
       this.unsub = undefined;
     }
-    this.stopRingTimer();
+    this.ringClock.stop();
   }
 
   updateHass(hass: HomeAssistant): void {
@@ -125,7 +120,7 @@ export class LinkController implements ReactiveController {
 
   ignore(callId: string): void {
     this.ignoredCallId = callId;
-    this.stopRingTimer();
+    this.ringClock.stop();
     this.host.requestUpdate();
   }
 
@@ -188,26 +183,22 @@ export class LinkController implements ReactiveController {
   private react(): void {
     const vm = this.vm;
     const mode = this.config?.auto_start ?? DEFAULT_AUTO_START;
-    if (vm.ringingCall && vm.ringingCall.id !== this.ignoredCallId) this.ensureRingTimer();
-    else this.stopRingTimer();
+    if (vm.ringingCall && vm.ringingCall.id !== this.ignoredCallId) this.ringClock.ensure();
+    else this.ringClock.stop();
 
     this.advancePending();
 
     if (this.linkState === "idle") {
-      const ring = vm.ringingCall;
-      if (vm.streamingCall && mode !== "never") void this.negotiate(null);
-      else if (this.answerArmed && mode === "on_ring" && ring && ring.id !== this.ignoredCallId) {
-        this.answer(ring.id);
-      } else if (mode === "always" && !vm.activeCall && !this.autoStarted) {
+      // No auto-join of a streaming call: the card negotiates only on an explicit
+      // Décrocher or Regarder, which binds the offer to the fresh call. Auto-join
+      // could latch onto a stale streaming leg that never emits media.
+      if (mode === "always" && !vm.activeCall && !this.autoStarted) {
         this.autoStarted = true;
         this.look();
       }
     } else if (this.linkState === "live" && vm.degraded) {
       this.linkState = "degraded";
     }
-    // The arrival window is one state wide: only a ring present when the card
-    // first draws auto-answers, never one that arrives afterwards.
-    this.answerArmed = false;
     this.host.requestUpdate();
   }
 
@@ -231,7 +222,8 @@ export class LinkController implements ReactiveController {
   private async negotiate(callId: string | null): Promise<void> {
     const hass = this.hass;
     const entryId = this.entryId;
-    if (!hass || !entryId || this.connecting) return;
+    // One link at a time: a second offer on a live call tears the first down.
+    if (!hass || !entryId || this.connecting || this.link) return;
     this.connecting = true;
     this.linkState = "negotiating";
     this.error = undefined;
@@ -275,22 +267,7 @@ export class LinkController implements ReactiveController {
     this.host.requestUpdate();
   }
 
-  private ensureRingTimer(): void {
-    if (this.ringTimer) return;
-    this.ringStart = Date.now();
-    this.ringSeconds = 0;
-    this.ringTimer = setInterval(() => {
-      this.ringSeconds = Math.floor((Date.now() - (this.ringStart ?? Date.now())) / 1000);
-      this.host.requestUpdate();
-    }, 1000);
-  }
-
-  private stopRingTimer(): void {
-    if (this.ringTimer) {
-      clearInterval(this.ringTimer);
-      this.ringTimer = undefined;
-    }
-    this.ringSeconds = 0;
-    this.ringStart = undefined;
+  get ringSeconds(): number {
+    return this.ringClock.seconds;
   }
 }

@@ -69,8 +69,11 @@ export class UrmetPortierCard extends LitElement {
     return 8;
   }
 
-  getGridOptions(): { rows: number; columns: number; min_rows: number } {
-    return { rows: 8, columns: 12, min_rows: 4 };
+  // Height follows the content: the stage keeps a 4/3 aspect and the actions sit
+  // right under it. A fixed row span left a tall empty band below the button on a
+  // phone, so the card auto-sizes and only pins its width.
+  getGridOptions(): { rows: "auto"; columns: number } {
+    return { rows: "auto", columns: 12 };
   }
 
   static getConfigElement(): HTMLElement {
@@ -98,7 +101,15 @@ export class UrmetPortierCard extends LitElement {
       if (next) {
         try {
           const started = video.play?.();
-          if (started) void started.catch((error) => console.debug("urmet: play rejected", error));
+          if (started)
+            void started
+              // The panel's voice rides the same stream, so a muted element would
+              // show the visitor but never let them be heard. Unmute once the
+              // muted autoplay has cleared the policy.
+              .then(() => {
+                video.muted = false;
+              })
+              .catch((error) => console.debug("urmet: play rejected", error));
         } catch (error) {
           console.debug("urmet: play threw", error);
         }

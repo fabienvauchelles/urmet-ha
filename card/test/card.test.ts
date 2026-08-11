@@ -134,7 +134,7 @@ describe("teardown", () => {
   });
 });
 
-describe("auto-answer on arrival", () => {
+describe("ring handling", () => {
   function connect(config: Record<string, unknown>) {
     let deliver: ((frame: unknown) => void) | undefined;
     const hass = makeHass();
@@ -158,21 +158,12 @@ describe("auto-answer on arrival", () => {
     calls: [{ id: "c1", state: "ringing", direction }],
   });
 
-  it("answers an incoming ring already in progress when the card arrives", async () => {
+  it("never answers a ring on its own; the visitor is shown for a manual answer", async () => {
     const { el, hass, deliver } = connect({ auto_start: "on_ring" });
-    deliver()?.(ring("incoming"));
-    await Promise.resolve();
-    expect(hass.callService).toHaveBeenCalledWith("urmet", "answer", { call_id: "c1" });
-    el.remove();
-  });
-
-  it("does not answer a ring that starts after the card is already open", async () => {
-    const { el, hass, deliver } = connect({ auto_start: "on_ring" });
-    deliver()?.({ ...ring("incoming"), calls: [] });
-    await Promise.resolve();
     deliver()?.(ring("incoming"));
     await Promise.resolve();
     expect(hass.callService).not.toHaveBeenCalledWith("urmet", "answer", expect.anything());
+    expect((el._link as { vm: { ringingCall?: { id: string } } }).vm.ringingCall?.id).toBe("c1");
     el.remove();
   });
 });

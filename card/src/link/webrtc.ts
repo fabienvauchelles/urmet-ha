@@ -90,9 +90,16 @@ export class WebrtcLink {
     await pc.setRemoteDescription({ type: "answer", sdp: answer.sdp });
   }
 
+  // The mic is acquired lazily, on the first talk, so a plain look never puts the
+  // phone into communication audio mode (which would drop the panel's voice to the
+  // earpiece). Echo cancellation is mandatory: the panel audio plays out loud on
+  // the same device, so without it the visitor hears themselves.
   async enableMic(): Promise<void> {
     if (!this.pc || !this.audioSender || this.micTrack) return;
-    const stream = await this.deps.getUserMedia({ audio: true, video: false });
+    const stream = await this.deps.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: false,
+    });
     this.micStream = stream;
     this.micTrack = stream.getAudioTracks()[0];
     await this.audioSender.replaceTrack(this.micTrack);
