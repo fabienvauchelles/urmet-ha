@@ -5,7 +5,7 @@
 #
 #   gateway      .venv      urmet-sdk from PyPI + the gateway package; root pyproject.toml
 #   integration  .venv-ha   Home Assistant + the test harness; qa/integration-*
-#   card         card/      npm: tsc --noEmit, vitest, and the rollup bundle
+#   card         card/      npm: biome check, tsc --noEmit, vitest, rollup bundle
 #
 # `make build` provisions all three. `make check` runs all three and fails if any
 # area fails. The per-area targets (gateway, integration, card) run one area on
@@ -35,7 +35,7 @@ INT_MYPY := qa/integration-mypy.toml
 	build-gateway build-integration build-card \
 	gateway lint-gateway typecheck-gateway test-gateway \
 	integration lint-integration typecheck-integration test-integration \
-	card typecheck-card test-card build-card-bundle
+	card lint-card typecheck-card test-card build-card-bundle
 
 # =============================== provisioning ===============================
 build: build-gateway build-integration build-card
@@ -86,6 +86,9 @@ test-integration:
 integration: lint-integration typecheck-integration test-integration
 
 # ================================== card ====================================
+lint-card:
+	cd card && npm run lint
+
 typecheck-card:
 	cd card && npm run typecheck
 
@@ -95,7 +98,7 @@ test-card:
 build-card-bundle:
 	cd card && npm run build
 
-card: typecheck-card test-card build-card-bundle
+card: lint-card typecheck-card test-card build-card-bundle
 
 # =============================== unified gate ===============================
 check: gateway integration card

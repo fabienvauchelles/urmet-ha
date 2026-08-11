@@ -22,9 +22,11 @@ export function renderRing(opts: RingOpts): TemplateResult {
         <span class="ring-title">${opts.name} sonne</span>
         <span class="ring-timer">${opts.seconds}s</span>
       </div>
-      ${opts.cameraUrl
-        ? html`<img class="ring-preview" src=${opts.cameraUrl} alt="Aperçu du portail" />`
-        : nothing}
+      ${
+        opts.cameraUrl
+          ? html`<img class="ring-preview" src=${opts.cameraUrl} alt="Aperçu du portail" />`
+          : nothing
+      }
       <div class="ring-actions">
         <button class="btn btn-answer" @click=${opts.onAnswer}>Décrocher</button>
         <button class="btn btn-ignore" @click=${opts.onIgnore}>Ignorer</button>

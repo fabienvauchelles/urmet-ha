@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { offerHasRequiredCodecs, UnsupportedCodecError, WebrtcLink, type WebrtcDeps } from "../src/link/webrtc";
+import {
+  offerHasRequiredCodecs,
+  UnsupportedCodecError,
+  type WebrtcDeps,
+  WebrtcLink,
+} from "../src/link/webrtc";
 
-const GOOD_SDP = "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 H264/90000\r\nm=audio 9 UDP/TLS/RTP/SAVPF 8\r\na=rtpmap:8 PCMA/8000\r\n";
+const GOOD_SDP =
+  "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=rtpmap:96 H264/90000\r\nm=audio 9 UDP/TLS/RTP/SAVPF 8\r\na=rtpmap:8 PCMA/8000\r\n";
 const BAD_SDP = "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\na=rtpmap:111 opus/48000\r\n";
 
 function makeFakePc(sdp: string) {
@@ -14,7 +20,8 @@ function makeFakePc(sdp: string) {
     localDescription: null as RTCSessionDescription | null,
     close: vi.fn(),
     addEventListener: (type: string, cb: (event?: unknown) => void) => {
-      (listeners[type] ??= []).push(cb);
+      listeners[type] ??= [];
+      listeners[type].push(cb);
     },
     removeEventListener: (type: string, cb: (event?: unknown) => void) => {
       listeners[type] = (listeners[type] ?? []).filter((entry) => entry !== cb);
@@ -26,7 +33,9 @@ function makeFakePc(sdp: string) {
     },
     setRemoteDescription: vi.fn().mockResolvedValue(undefined),
     getReceivers: () => [{ track: receiverTrack }],
-    fire: (type: string, event?: unknown) => (listeners[type] ?? []).forEach((cb) => cb(event)),
+    fire: (type: string, event?: unknown) => {
+      for (const cb of listeners[type] ?? []) cb(event);
+    },
     sender,
     receiverTrack,
   };
@@ -59,10 +68,16 @@ describe("WebrtcLink.connect", () => {
     const pc = makeFakePc(GOOD_SDP);
     const mic = makeMic();
     let remote: MediaStream | undefined;
-    const link = new WebrtcLink(deps(pc, mic), (stream) => {
-      remote = stream;
-    }, () => undefined);
-    const poster = vi.fn().mockResolvedValue({ sdp: "answer-sdp", session_id: "sess-1", call_id: "call-9" });
+    const link = new WebrtcLink(
+      deps(pc, mic),
+      (stream) => {
+        remote = stream;
+      },
+      () => undefined,
+    );
+    const poster = vi
+      .fn()
+      .mockResolvedValue({ sdp: "answer-sdp", session_id: "sess-1", call_id: "call-9" });
 
     await link.connect("call-9", poster);
 
@@ -82,7 +97,11 @@ describe("WebrtcLink.connect", () => {
 
   it("refuses an offer that carries neither H264 nor PCMA", async () => {
     const pc = makeFakePc(BAD_SDP);
-    const link = new WebrtcLink(deps(pc, makeMic()), () => undefined, () => undefined);
+    const link = new WebrtcLink(
+      deps(pc, makeMic()),
+      () => undefined,
+      () => undefined,
+    );
     await expect(link.connect(null, vi.fn())).rejects.toBeInstanceOf(UnsupportedCodecError);
   });
 });
@@ -91,7 +110,11 @@ describe("WebrtcLink.close", () => {
   it("stops every track and closes the peer connection, idempotently", async () => {
     const pc = makeFakePc(GOOD_SDP);
     const mic = makeMic();
-    const link = new WebrtcLink(deps(pc, mic), () => undefined, () => undefined);
+    const link = new WebrtcLink(
+      deps(pc, mic),
+      () => undefined,
+      () => undefined,
+    );
     await link.connect(null, vi.fn().mockResolvedValue({ sdp: "a", session_id: "s", call_id: "" }));
     await link.enableMic();
 

@@ -55,7 +55,11 @@ export function postOffer(
   });
 }
 
-export function closeSession(hass: HomeAssistant, entryId: string, sessionId: string): Promise<unknown> {
+export function closeSession(
+  hass: HomeAssistant,
+  entryId: string,
+  sessionId: string,
+): Promise<unknown> {
   return hass.callWS({ type: WS_CLOSE, entry_id: entryId, session_id: sessionId });
 }
 

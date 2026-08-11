@@ -1,12 +1,13 @@
 {
   "name": "urmet-portier-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Home Assistant Lovelace card for the Urmet doorphone gateway",
   "license": "MIT",
   "private": true,
   "type": "module",
   "main": "../custom_components/urmet/www/urmet-portier-card.js",
   "scripts": {
+    "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "rollup -c"
@@ -15,6 +16,7 @@
     "lit": "^3.3.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.8",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",

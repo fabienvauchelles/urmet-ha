@@ -58,7 +58,10 @@ export interface HassDeviceRegistryEntry {
 export type UnsubscribeFunc = () => Promise<void>;
 
 export interface HassConnection {
-  subscribeMessage<T>(callback: (message: T) => void, subscription: Record<string, unknown>): Promise<UnsubscribeFunc>;
+  subscribeMessage<T>(
+    callback: (message: T) => void,
+    subscription: Record<string, unknown>,
+  ): Promise<UnsubscribeFunc>;
 }
 
 export interface HomeAssistant {
@@ -198,7 +201,8 @@ export function findDoorbellEntity(hass: HomeAssistant, entryId?: string): strin
   for (const entry of Object.values(hass.entities ?? {})) {
     if (entry.platform !== "urmet") continue;
     if (entryId && entryIdForEntity(hass, entry) !== entryId) continue;
-    if (entry.entity_id.startsWith("event.") && entry.entity_id.includes("doorbell")) return entry.entity_id;
+    if (entry.entity_id.startsWith("event.") && entry.entity_id.includes("doorbell"))
+      return entry.entity_id;
   }
   return undefined;
 }
@@ -214,9 +218,13 @@ export function resolveEntry(config: UrmetCardConfig, hass: HomeAssistant): Entr
   const ids = findEntryIds(hass);
   if (ids.length === 1) return { entryId: ids[0] };
   if (ids.length > 1) {
-    return { error: "Plusieurs portiers configurés: précisez entry_id dans la configuration de la carte." };
+    return {
+      error: "Plusieurs portiers configurés: précisez entry_id dans la configuration de la carte.",
+    };
   }
-  const hasEntities = Object.values(hass.entities ?? {}).some((entry) => entry.platform === "urmet");
+  const hasEntities = Object.values(hass.entities ?? {}).some(
+    (entry) => entry.platform === "urmet",
+  );
   if (hasEntities) return { pending: true };
   return { error: "Aucune entrée Portier Urmet n'est configurée." };
 }
@@ -230,7 +238,11 @@ export function trackedIds(config: UrmetCardConfig | undefined, doorbell?: strin
 
 // HA hands back a fresh state object for an entity only when it changed, so an
 // identity check per tracked id tells an unrelated tick from a relevant one.
-export function statesEqual(a: HomeAssistant | undefined, b: HomeAssistant | undefined, ids: string[]): boolean {
+export function statesEqual(
+  a: HomeAssistant | undefined,
+  b: HomeAssistant | undefined,
+  ids: string[],
+): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   return ids.every((id) => a.states[id] === b.states[id]);

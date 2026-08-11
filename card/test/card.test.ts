@@ -47,7 +47,9 @@ describe("setConfig", () => {
   });
   it("throws on an invalid auto_start", () => {
     const el = create();
-    expect(() => el.setConfig({ type: "custom:urmet-portier-card", auto_start: "sometimes" })).toThrow();
+    expect(() =>
+      el.setConfig({ type: "custom:urmet-portier-card", auto_start: "sometimes" }),
+    ).toThrow();
   });
   it("accepts the documented keys and HA layout keys", () => {
     const el = create();
@@ -67,10 +69,16 @@ describe("setConfig", () => {
 describe("hass diffing", () => {
   it("does not re-render on a tick that leaves the tracked entities unchanged", () => {
     const el = create();
-    el.setConfig({ type: "custom:urmet-portier-card", entry_id: "e1", preview_camera: "camera.preview" });
+    el.setConfig({
+      type: "custom:urmet-portier-card",
+      entry_id: "e1",
+      preview_camera: "camera.preview",
+    });
     el.hass = makeHass();
     const spy = vi.spyOn(el, "requestUpdate");
-    el.hass = makeHass({ "light.random": { entity_id: "light.random", state: "on", attributes: {} } });
+    el.hass = makeHass({
+      "light.random": { entity_id: "light.random", state: "on", attributes: {} },
+    });
     expect(spy).not.toHaveBeenCalled();
     // positive control: a fresh camera state object is a real change
     el.hass = makeHass({}, { ...CAM });

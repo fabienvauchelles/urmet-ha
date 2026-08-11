@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 
 import { nodeResolve } from "@rollup/plugin-node-resolve";
-import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
+import typescript from "@rollup/plugin-typescript";
 
 // package.json is the card's single version source. The console banner every
 // browser prints is emitted here, at build time, so no TypeScript file carries a

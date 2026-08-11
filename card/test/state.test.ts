@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest";
 import {
   deriveViewModel,
   findEntryIds,
+  type HomeAssistant,
   resolveEntry,
+  type StateWire,
   stageSentence,
   statesEqual,
   trackedIds,
-  type HomeAssistant,
-  type StateWire,
 } from "../src/state";
 
-function hass(entities: HomeAssistant["entities"], states: HomeAssistant["states"] = {}): HomeAssistant {
+function hass(
+  entities: HomeAssistant["entities"],
+  states: HomeAssistant["states"] = {},
+): HomeAssistant {
   return {
     states,
     entities,
@@ -81,7 +84,15 @@ describe("deriveViewModel", () => {
       calls: [{ id: "c1", state: "streaming", direction: "incoming" }],
       mic_muted: false,
       sessions: [
-        { session_id: "s1", call_id: "c1", state: "degraded", connection: "failed", reason: "x", video: null, audio: null },
+        {
+          session_id: "s1",
+          call_id: "c1",
+          state: "degraded",
+          connection: "failed",
+          reason: "x",
+          video: null,
+          audio: null,
+        },
       ],
     });
     expect(vm.degraded).toBe(true);
@@ -96,14 +107,26 @@ describe("deriveViewModel", () => {
 });
 
 describe("resolveEntry", () => {
-  const single = { "event.portier_sonnette": { entity_id: "event.portier_sonnette", platform: "urmet", config_entry_id: "e1" } };
+  const single = {
+    "event.portier_sonnette": {
+      entity_id: "event.portier_sonnette",
+      platform: "urmet",
+      config_entry_id: "e1",
+    },
+  };
   const dual = {
     ...single,
-    "event.autre_sonnette": { entity_id: "event.autre_sonnette", platform: "urmet", config_entry_id: "e2" },
+    "event.autre_sonnette": {
+      entity_id: "event.autre_sonnette",
+      platform: "urmet",
+      config_entry_id: "e2",
+    },
   };
 
   it("uses an explicit entry_id", () => {
-    expect(resolveEntry({ type: "x", entry_id: "chosen" }, hass({}))).toEqual({ entryId: "chosen" });
+    expect(resolveEntry({ type: "x", entry_id: "chosen" }, hass({}))).toEqual({
+      entryId: "chosen",
+    });
   });
 
   it("finds the single entry when none is configured", () => {
@@ -130,7 +153,10 @@ describe("statesEqual and trackedIds", () => {
   });
   it("is stable when the tracked entity keeps its identity", () => {
     const a = hass({}, { "camera.preview": cam });
-    const b = hass({}, { "camera.preview": cam, "light.x": { entity_id: "light.x", state: "on", attributes: {} } });
+    const b = hass(
+      {},
+      { "camera.preview": cam, "light.x": { entity_id: "light.x", state: "on", attributes: {} } },
+    );
     expect(statesEqual(a, b, trackedIds(cfg))).toBe(true);
   });
   it("differs when the tracked entity changes identity", () => {

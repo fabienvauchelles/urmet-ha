@@ -2,6 +2,14 @@
 
 Covers the whole project: the add-on gateway, the integration, and the card.
 
+## 0.2.1
+
+- The add-on image now ships the ingress diagnostics page. Its static files
+  (`diag/index.html`, `diag/diag.js`) are declared as package data, so they
+  travel inside the wheel instead of being left behind by the build, which is
+  why the gateway used to log "no diagnostics page".
+- Biome lints and formats the card; `make card` now runs it.
+
 ## 0.2.0
 
 Refactor onto the urmet-sdk 0.2 contract, and cross-repo coherence. No behavior

@@ -1,18 +1,18 @@
 import type { ReactiveController, ReactiveControllerHost } from "lit";
+import * as gw from "./link/hass";
+import { browserDeps, UnsupportedCodecError, WebrtcLink } from "./link/webrtc";
+import { RingClock } from "./ring_clock";
 import {
+  type CardViewModel,
   DEFAULT_AUTO_START,
   deriveViewModel,
-  resolveEntry,
-  type CardViewModel,
   type HomeAssistant,
   type LinkState,
+  resolveEntry,
   type StateWire,
   type UnsubscribeFunc,
   type UrmetCardConfig,
 } from "./state";
-import * as gw from "./link/hass";
-import { browserDeps, UnsupportedCodecError, WebrtcLink } from "./link/webrtc";
-import { RingClock } from "./ring_clock";
 
 // The link use case: subscription, the answer/look/negotiate/teardown state
 // machine, the mic path, the ring counter. It lives outside the element so the
@@ -105,7 +105,9 @@ export class LinkController implements ReactiveController {
     this.linkState = "answering";
     this.pendingCallId = callId;
     this.host.requestUpdate();
-    void gw.answerCall(hass, callId).catch((error) => this.fail("Impossible de répondre à l'appel.", error));
+    void gw
+      .answerCall(hass, callId)
+      .catch((error) => this.fail("Impossible de répondre à l'appel.", error));
   }
 
   look(): void {
@@ -129,7 +131,8 @@ export class LinkController implements ReactiveController {
     const callId = this.vm.activeCall?.id;
     this.teardown();
     this.host.requestUpdate();
-    if (hass) void gw.hangUp(hass, callId).catch((error) => console.warn("urmet: hang up failed", error));
+    if (hass)
+      void gw.hangUp(hass, callId).catch((error) => console.warn("urmet: hang up failed", error));
   }
 
   async toggleTalk(): Promise<void> {
@@ -207,7 +210,8 @@ export class LinkController implements ReactiveController {
     const calls = this.state?.calls ?? [];
     const pending = this.pendingCallId ? calls.find((c) => c.id === this.pendingCallId) : undefined;
     if (pending && (pending.state === "ended" || pending.state === "error")) {
-      this.error = pending.state === "error" ? "L'appel n'a pas pu aboutir." : "L'appel s'est terminé.";
+      this.error =
+        pending.state === "error" ? "L'appel n'a pas pu aboutir." : "L'appel s'est terminé.";
       this.teardown();
       return;
     }
@@ -238,7 +242,8 @@ export class LinkController implements ReactiveController {
       this.sessionId = link.sessionId;
       this.linkState = this.hasRemote ? "live" : "waiting";
     } catch (error) {
-      this.error = error instanceof UnsupportedCodecError ? error.message : "La connexion vidéo a échoué.";
+      this.error =
+        error instanceof UnsupportedCodecError ? error.message : "La connexion vidéo a échoué.";
       console.warn("urmet: negotiate failed", error);
       this.teardown();
     } finally {

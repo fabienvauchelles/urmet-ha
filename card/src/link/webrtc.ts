@@ -115,12 +115,12 @@ export class WebrtcLink {
   close(): void {
     if (this.closed) return;
     this.closed = true;
-    this.micStream?.getTracks().forEach((track) => track.stop());
+    for (const track of this.micStream?.getTracks() ?? []) track.stop();
     this.micStream = undefined;
     this.micTrack = undefined;
     const pc = this.pc;
     if (pc) {
-      pc.getReceivers().forEach((receiver) => receiver.track?.stop());
+      for (const receiver of pc.getReceivers()) receiver.track?.stop();
       pc.close();
     }
     this.pc = undefined;

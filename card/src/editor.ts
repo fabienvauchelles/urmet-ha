@@ -1,4 +1,4 @@
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { css, html, LitElement, type TemplateResult } from "lit";
 import {
   AUTO_START_MODES,
   DEFAULT_AUTO_START,
@@ -74,7 +74,10 @@ export class UrmetPortierCardEditor extends LitElement {
           auto_start
           <select
             @change=${(event: Event) =>
-              this._emit({ auto_start: (event.target as HTMLSelectElement).value as UrmetCardConfig["auto_start"] })}
+              this._emit({
+                auto_start: (event.target as HTMLSelectElement)
+                  .value as UrmetCardConfig["auto_start"],
+              })}
           >
             ${AUTO_START_MODES.map(
               (option) =>

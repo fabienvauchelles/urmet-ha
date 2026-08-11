@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "urmet-gateway"
-version = "0.2.0"
+version = "0.2.1"
 description = "Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant."
 requires-python = ">=3.12"
 license = "LicenseRef-FSL-1.1-MIT"
@@ -24,3 +24,10 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["urmet_gateway*"]
+
+# The ingress diagnostics page is served by main.py from the installed package
+# directory, so its static files have to travel inside the wheel. Without this
+# they are left behind by the build and the add-on image starts without a
+# diagnostics page.
+[tool.setuptools.package-data]
+urmet_gateway = ["diag/*.html", "diag/*.js"]

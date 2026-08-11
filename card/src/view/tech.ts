@@ -44,7 +44,7 @@ export function renderTech(opts: TechOpts): TemplateResult {
           "Audio perdu",
           audio
             ? `${audio.dropped_from_doorphone} entrants / ${audio.dropped_to_doorphone} sortants` +
-              ` (${audio.partial_from_doorphone} partiels)`
+                ` (${audio.partial_from_doorphone} partiels)`
             : "-",
         )}
         ${row(

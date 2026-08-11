@@ -1,18 +1,18 @@
-import { LitElement, html, nothing, type TemplateResult } from "lit";
+import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { createRef, type Ref } from "lit/directives/ref.js";
-import { cardStyles } from "./styles";
 import { LinkController } from "./controller";
 import {
   AUTO_START_MODES,
+  type AutoStart,
   DEFAULT_AUTO_START,
   findDoorbellEntity,
+  type HomeAssistant,
   stageSentence,
   statesEqual,
   trackedIds,
-  type AutoStart,
-  type HomeAssistant,
   type UrmetCardConfig,
 } from "./state";
+import { cardStyles } from "./styles";
 import { renderRing } from "./view/ring";
 import { renderStage } from "./view/stage";
 import { renderTalk } from "./view/talk";
@@ -87,8 +87,10 @@ export class UrmetPortierCard extends LitElement {
   private _cameraUrl(): string | undefined {
     const entity = this._config?.preview_camera;
     if (!entity) return undefined;
-    const token = this._hass?.states[entity]?.attributes["access_token"];
-    return typeof token === "string" ? `/api/camera_proxy_stream/${entity}?token=${token}` : undefined;
+    const token = this._hass?.states[entity]?.attributes.access_token;
+    return typeof token === "string"
+      ? `/api/camera_proxy_stream/${entity}?token=${token}`
+      : undefined;
   }
 
   private _assignStream(): void {
@@ -135,15 +137,17 @@ export class UrmetPortierCard extends LitElement {
     const talkAvailable = link.linkState === "live" || link.linkState === "degraded";
     return html`
       <ha-card>
-        ${ringing
-          ? renderRing({
-              name: vm.doorphoneName,
-              seconds: link.ringSeconds,
-              cameraUrl,
-              onAnswer: () => link.answer(ringing.id),
-              onIgnore: () => link.ignore(ringing.id),
-            })
-          : nothing}
+        ${
+          ringing
+            ? renderRing({
+                name: vm.doorphoneName,
+                seconds: link.ringSeconds,
+                cameraUrl,
+                onAnswer: () => link.answer(ringing.id),
+                onIgnore: () => link.ignore(ringing.id),
+              })
+            : nothing
+        }
         ${renderStage({
           videoRef: this._videoRef,
           hasRemote: link.hasRemote,
@@ -158,9 +162,11 @@ export class UrmetPortierCard extends LitElement {
           onToggle: () => void link.toggleTalk(),
         })}
         ${this._renderActions(link.hasLink, !!ringing)}
-        ${this._config.show_tech
-          ? renderTech({ vm, linkState: link.linkState, sessionId: link.sessionId })
-          : nothing}
+        ${
+          this._config.show_tech
+            ? renderTech({ vm, linkState: link.linkState, sessionId: link.sessionId })
+            : nothing
+        }
       </ha-card>
     `;
   }
