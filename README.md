@@ -108,7 +108,7 @@ The integration exposes `event.portier_*`, `button.portier_*`,
 
 ## Status and limitations
 
-Version `0.1.1`. Working, early, and honest about what is proven.
+Version `0.1.2`. Working, early, and honest about what is proven.
 
 - **amd64 only.** The pjsua2 build the add-on relies on is validated for that
   architecture alone.

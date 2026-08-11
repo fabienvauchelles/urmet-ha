@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2
+
+- No gateway change. Version aligned with the card and integration release: the
+  card shows a neutral placeholder when idle instead of a camera by default, the
+  gate button reads "Portail", and no shipped example references a specific camera.
+
 ## 0.1.1
 
 - The add-on announces itself to the Supervisor, so the Portier Urmet integration
