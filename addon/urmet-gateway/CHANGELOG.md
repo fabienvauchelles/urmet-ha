@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- The add-on announces itself to the Supervisor, so the Portier Urmet integration
+  sets itself up with no host or port to type.
+- Dropped the AppArmor profile that never loaded; the add-on runs without a custom
+  profile for now.
+
 ## 0.1.0
 
 First release.
@@ -14,5 +21,4 @@ First release.
 - Registers with the Urmet cloud, reports rings, answers on request, taps audio
   and video, and opens the door or steps the gate.
 - Diagnostics page on ingress; media leg on the host network for LAN WebRTC.
-- AppArmor profile with no extra capability and writes confined to the add-on.
 - amd64 only.
