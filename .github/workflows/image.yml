@@ -1,0 +1,134 @@
+name: Image
+
+# The add-on image is the highest-risk artefact in the tree: it compiles pjproject
+# from source and builds the pjsua2 SWIG binding. Every push builds it without
+# publishing so a commit that breaks the compile fails on that commit; a published
+# release builds, pushes and signs the multi-arch manifest the Supervisor pulls.
+
+on:
+  push:
+    branches:
+      - "**"
+  release:
+    types: [published]
+
+env:
+  ARCHITECTURES: '["amd64"]'
+  IMAGE_NAME: urmet-gateway
+  ADDON_CONTEXT: addon/urmet-gateway
+
+permissions:
+  contents: read
+
+jobs:
+  init:
+    name: Prepare build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Derive the image tag from the release tag
+        id: version
+        # The Supervisor pulls ${image}:${config.yaml version}, and config.yaml
+        # carries a bare semver (0.1.0). The GitHub release tag is vX.Y.Z, so the
+        # leading v is stripped to make the pushed tag equal the add-on version.
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build the architecture matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
+        with:
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+
+  verify:
+    name: Verify ${{ matrix.arch }} image builds
+    if: github.event_name == 'push'
+    needs: init
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    steps:
+      - name: Check out with the SDK submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
+
+      - name: Build the add-on image without pushing
+        uses: home-assistant/builder/actions/build-image@2026.06.0
+        with:
+          arch: ${{ matrix.arch }}
+          image: ${{ matrix.image }}
+          image-tags: verify
+          version: ${{ github.sha }}
+          context: ${{ env.ADDON_CONTEXT }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          push: "false"
+          load: "true"
+          cosign: "false"
+
+      - name: Assert the pjsua2 binding imports and ffmpeg runs
+        run: |
+          docker run --rm --entrypoint python "${{ matrix.image }}:verify" -c "import pjsua2"
+          docker run --rm --entrypoint ffmpeg "${{ matrix.image }}:verify" -version
+
+  build:
+    name: Build and push ${{ matrix.arch }} image
+    if: github.event_name == 'release'
+    needs: init
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+    steps:
+      - name: Check out with the SDK submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
+
+      - name: Build, push and sign the add-on image
+        uses: home-assistant/builder/actions/build-image@2026.06.0
+        with:
+          arch: ${{ matrix.arch }}
+          image: ${{ matrix.image }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          version: ${{ needs.init.outputs.version }}
+          context: ${{ env.ADDON_CONTEXT }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          push: "true"
+
+  manifest:
+    name: Publish the multi-arch manifest
+    if: github.event_name == 'release'
+    needs: [init, build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      packages: write
+    steps:
+      - name: Publish and sign the multi-arch manifest
+        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
+        with:
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}

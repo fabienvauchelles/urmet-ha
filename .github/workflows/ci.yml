@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    # amd64 only: the box is generic-x86-64 and the pjproject build the add-on
+    # relies on is validated for that arch alone.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with the SDK submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # The urmet-sdk submodule is a private repo reached over SSH. The deploy
+          # key is used for the main checkout and every submodule.
+          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: card/package-lock.json
+
+      - name: Provision the three areas (venvs and card deps)
+        run: make build
+
+      - name: Unified gate (gateway + integration + card)
+        run: make check
