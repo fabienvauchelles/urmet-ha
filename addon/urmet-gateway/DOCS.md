@@ -46,7 +46,6 @@ card. `docs/install.md` in the repository covers the dashboard and automations.
 | `password` | Urmet cloud account password. Use `!secret`. Never logged, never leaves the add-on. |
 | `doorphone_mac` | Panel MAC (`00:11:22:33:44:55` or with underscores). Optional: learned from the first ring when empty. Set it to register before the first ring. |
 | `doorphone_name` | Label shown for the panel in Home Assistant. |
-| `look_timeout_s` | How long an unwatched "look" call is held before release, 10 to 120 seconds. |
 | `log_level` | `debug`, `info`, `warning` or `error`. Use `debug` only while troubleshooting. |
 
 Credentials are third-party device credentials and belong in the add-on options,

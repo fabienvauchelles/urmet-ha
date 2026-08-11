@@ -1,6 +1,6 @@
 ---
 name: Urmet doorphone gateway
-version: "0.1.5"
+version: "0.2.0"
 slug: urmet_gateway
 description: Terminates the Urmet SIP leg and originates a WebRTC leg for Home Assistant
 url: https://github.com/fabienvauchelles/urmet-ha
@@ -30,7 +30,6 @@ options:
   password: ""
   doorphone_mac: ""
   doorphone_name: "Portier"
-  look_timeout_s: 30
   log_level: info
 schema:
   # email/password/doorphone_mac are optional so the add-on always starts and
@@ -41,5 +40,4 @@ schema:
   password: "password?"
   doorphone_mac: "match(^([0-9A-Fa-f]{2}[:_]){5}[0-9A-Fa-f]{2}$)?"
   doorphone_name: str
-  look_timeout_s: int(10,120)
   log_level: "list(debug|info|warning|error)"

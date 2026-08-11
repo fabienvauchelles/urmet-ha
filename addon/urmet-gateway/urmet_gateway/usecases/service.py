@@ -30,7 +30,7 @@ from urmet_gateway.domain.models import (
     StateView,
 )
 from urmet_gateway.domain.ports import Clock, DoorphonePort, SessionFactory
-from urmet_gateway.usecases.calls import TERMINAL_STATES, CallBook
+from urmet_gateway.usecases.calls import CallBook
 from urmet_gateway.usecases.events import EventBus
 from urmet_gateway.usecases.sessions import MediaSessions
 from urmet_gateway.usecases.state import StateReader
@@ -203,7 +203,7 @@ class DoorphoneService:
         tracked = self._calls.find(call.id)
         direction = tracked.direction if tracked is not None else side
         self._publish(CallEvent(at=self._now(), call_id=call.id, state=state, direction=direction))
-        if state in TERMINAL_STATES:
+        if state.is_terminal:
             self._media.call_ended(call.id)
             self._calls.forget(call.id)
             self.publish_state()

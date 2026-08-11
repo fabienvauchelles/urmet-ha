@@ -21,10 +21,6 @@ from urmet_sdk import CallHandle, CallState
 from urmet_gateway.domain.errors import UnknownCallError
 from urmet_gateway.domain.models import CallView, Direction
 
-# A dialog in one of these states is over. It leaves the book, both because the
-# interface must stop showing it and because a native stack recycles call ids.
-TERMINAL_STATES = frozenset({CallState.ENDED, CallState.ERROR})
-
 
 @dataclass
 class TrackedCall:
@@ -114,7 +110,7 @@ class CallBook:
 
     def streaming(self) -> list[TrackedCall]:
         """The dialogs whose media is up, in the order they appeared."""
-        return [c for c in self._calls.values() if c.state is CallState.STREAMING]
+        return [c for c in self._calls.values() if c.state.is_streaming]
 
     def views(self) -> list[CallView]:
         """What the interface shows: one entry per dialog still up."""

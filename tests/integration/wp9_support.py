@@ -20,11 +20,10 @@ from custom_components.urmet.const import (
     CONF_HOST,
     CONF_PORT,
     CONF_RING_COALESCE,
-    CONF_SHOW_TECH,
     DOMAIN,
 )
 
-DEFAULT_OPTIONS = {CONF_RING_COALESCE: 5, CONF_SHOW_TECH: True}
+DEFAULT_OPTIONS = {CONF_RING_COALESCE: 5}
 
 
 @pytest.fixture

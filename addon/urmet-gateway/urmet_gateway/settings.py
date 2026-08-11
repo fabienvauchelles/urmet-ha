@@ -42,10 +42,6 @@ class GatewaySettings(BaseSettings):
     # One of debug, info, warning, error (config.yaml schema).
     log_level: str = "info"
 
-    # How long an on-demand look call may stand unwatched before it is released,
-    # so an unwatched call never keeps the doorphone busy (DESIGN 6.5).
-    look_timeout_s: float = 30.0
-
     # How long a session holds its first look for a picture off. Zero, because
     # the panel's ~9 s to a first frame is its own keyframe cadence, not a settle
     # a client can wait its way out of (DESIGN 3.3, urmet-web trap 11).

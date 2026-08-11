@@ -20,10 +20,10 @@ from urmet_sdk import Actuator, CallHandle, Doorphone, UrmetClient
 
 from urmet_gateway.domain.models import SessionState, SessionView
 from urmet_gateway.domain.ports import MediaChanged, SessionClosed
+from urmet_gateway.runtime import GatewayRuntime
 from urmet_gateway.sip import (
     CallbackBridge,
     ClientHolder,
-    GatewayRuntime,
     RegistrationSupervisor,
     SdkWorker,
     rebuilding_factory,

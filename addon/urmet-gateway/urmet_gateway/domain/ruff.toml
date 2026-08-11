@@ -1,5 +1,11 @@
 # domain is the innermost layer: it imports nothing from the project and no
 # framework. Dependency rule: main -> http -> usecases -> domain, sip/media -> usecases.
+#
+# urmet_sdk is the one exception, and it is sanctioned: Actuator, CallState,
+# Doorphone and the SDK error tree are the 2Voice protocol's own value types, not
+# a framework. Duplicating them here would buy a mapping layer and lose the single
+# vocabulary the gateway, the SDK and the wire already share. It stays absent from
+# every ban list below on purpose.
 extend = "../../../../pyproject.toml"
 
 [lint.flake8-tidy-imports.banned-api]
@@ -12,3 +18,4 @@ extend = "../../../../pyproject.toml"
 "urmet_gateway.media".msg = "domain must not import media: dependencies point inward only"
 "urmet_gateway.http".msg = "domain must not import http: dependencies point inward only"
 "urmet_gateway.main".msg = "domain must not import main: dependencies point inward only"
+"urmet_gateway.runtime".msg = "domain must not import runtime: it is composition, like main"

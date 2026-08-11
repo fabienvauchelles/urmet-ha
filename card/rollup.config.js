@@ -1,6 +1,16 @@
+import { readFileSync } from "node:fs";
+
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
+
+// package.json is the card's single version source. The console banner every
+// browser prints is emitted here, at build time, so no TypeScript file carries a
+// version literal that can drift from the package the bundle was built out of.
+const { version } = JSON.parse(readFileSync("./package.json", "utf8"));
+const BANNER =
+  `console.info("%c URMET-PORTIER-CARD %c ${version} ",` +
+  ` "background:#1e88e5;color:#fff;border-radius:3px", "");`;
 
 // One bundled ES module, no code splitting: HACS ships a single Lovelace
 // resource loaded with type: module (best-practices-card section 1). The bundle
@@ -14,6 +24,7 @@ export default {
     format: "es",
     sourcemap: false,
     inlineDynamicImports: true,
+    banner: BANNER,
   },
   plugins: [
     nodeResolve(),

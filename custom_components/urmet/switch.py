@@ -15,10 +15,10 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .commands import async_set_microphone
 from .const import KEY_MIC
 from .coordinator import UrmetConfigEntry, UrmetCoordinator
 from .entity import UrmetEntity
-from .services import async_set_microphone
 
 
 async def async_setup_entry(
@@ -49,7 +49,7 @@ class MicrophoneSwitch(UrmetEntity, SwitchEntity):
         return None if data is None else not data.mic_muted
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        await async_set_microphone(self.hass, self._entry, muted=False)
+        await async_set_microphone(self._entry, muted=False)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await async_set_microphone(self.hass, self._entry, muted=True)
+        await async_set_microphone(self._entry, muted=True)

@@ -35,17 +35,13 @@ from aiortc import RTCConfiguration, RTCPeerConnection, RTCSessionDescription
 from aiortc.mediastreams import MediaStreamTrack
 from urmet_sdk import AudioFormat
 
-from urmet_gateway.domain.errors import AudioFormatMismatchError
+from urmet_gateway.domain.errors import AudioFormatMismatchError, UplinkFormatError
 from urmet_gateway.domain.models import AudioFlow, SessionState, SessionView, VideoFlow
 from urmet_gateway.domain.ports import MediaChanged, SessionClosed, TapPort
 from urmet_gateway.media.audio.bridge import AudioBridge
 from urmet_gateway.media.audio.g711 import pin_pcma
 from urmet_gateway.media.audio.measure import AudioMeasurement, measure_audio_bridge
-from urmet_gateway.media.audio.tracks import (
-    BrowserAudioPump,
-    DoorphoneAudioTrack,
-    UplinkFormatError,
-)
+from urmet_gateway.media.audio.tracks import BrowserAudioPump, DoorphoneAudioTrack
 from urmet_gateway.media.session_video import SessionVideo
 from urmet_gateway.media.track import pin_h264
 
@@ -185,7 +181,10 @@ class MediaSession:
         """The browser's own track arrived, during ``setRemoteDescription``."""
         if track.kind != "audio" or self._bridge is None:
             return
-        self._uplink = asyncio.ensure_future(self._drain(BrowserAudioPump(self._bridge, track)))
+        self._uplink = asyncio.create_task(
+            self._drain(BrowserAudioPump(self._bridge, track)),
+            name=f"urmet-uplink-{self._id}",
+        )
 
     async def _drain(self, pump: BrowserAudioPump) -> None:
         """Carry the browser's voice to the panel until its track ends.

@@ -3,7 +3,7 @@
 # Home Assistant) never runs the integration tests, and no area's ruff or mypy
 # config is applied to another area's code:
 #
-#   gateway      .venv      vendored SDK + the gateway package; root pyproject.toml
+#   gateway      .venv      urmet-sdk from PyPI + the gateway package; root pyproject.toml
 #   integration  .venv-ha   Home Assistant + the test harness; qa/integration-*
 #   card         card/      npm: tsc --noEmit, vitest, and the rollup bundle
 #

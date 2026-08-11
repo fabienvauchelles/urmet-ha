@@ -25,18 +25,14 @@ DEFAULT_PORT: Final = 8099
 # --- Options keys ----------------------------------------------------------
 CONF_RING_COALESCE: Final = "ring_coalesce_s"
 DEFAULT_RING_COALESCE: Final = 5
-CONF_SHOW_TECH: Final = "show_tech_panel"
-DEFAULT_SHOW_TECH: Final = True
 
 # --- Domain vocabulary (DESIGN 5.2, 6.5) -----------------------------------
-# The two actuators, the call states that count as active, and who initiated an
-# open. Shared by the command layer and the read-only entity platforms, so they
-# live here rather than in the command module the read path would otherwise
-# depend on.
+# The two actuators and who initiated an open. Shared by the command layer and
+# the read-only entity platforms, so they live here rather than in the command
+# module the read path would otherwise depend on. The call and session states
+# are the wire vocabulary and live with their models, in ``models.py``.
 ACTUATOR_DOOR: Final = "door"
 ACTUATOR_GATE: Final = "gate"
-
-ACTIVE_CALL_STATES: Final = frozenset({"ringing", "connecting", "streaming"})
 
 ORIGIN_CARD: Final = "card"
 ORIGIN_SERVICE: Final = "service"

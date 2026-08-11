@@ -28,10 +28,10 @@ from urmet_sdk import CallHandle, UrmetClient
 
 import urmet_gateway
 from urmet_gateway.http import create_app
+from urmet_gateway.runtime import GatewayRuntime
 from urmet_gateway.sip import (
     CallbackBridge,
     ClientHolder,
-    GatewayRuntime,
     RegistrationSupervisor,
     SdkWorker,
     rebuilding_factory,

@@ -21,6 +21,8 @@ from fractions import Fraction
 from aiortc import RTCPeerConnection, RTCRtpSender
 from aiortc.rtcrtpparameters import RTCRtpCodecCapability
 
+from urmet_gateway.domain.errors import PcmaUnavailableError
+
 # The RTP clock every G.711 payload runs on, and the timebase aiortc converts a
 # handed-over packet from.
 PCMA_TIME_BASE = Fraction(1, 8000)
@@ -35,10 +37,6 @@ _SIGN_SPLIT = 4096
 _INDEX_MASK = 0x1FFF
 _INDEX_SHIFT = 3
 _BYTES_PER_SAMPLE = 2
-
-
-class PcmaUnavailableError(RuntimeError):
-    """This aiortc build publishes no PCMA, so nothing could be pinned."""
 
 
 def _companded(value: int) -> int:

@@ -2,6 +2,24 @@
 
 Covers the whole project: the add-on gateway, the integration, and the card.
 
+## 0.2.0
+
+Refactor onto the urmet-sdk 0.2 contract, and cross-repo coherence. No behavior
+change on the deployed box.
+
+- The gateway builds on urmet-sdk 0.2: `director_failures` and
+  `doorphone_from_uri` come from the package root, and
+  `CallState.is_streaming` / `.is_terminal` replace the gateway-owned state sets.
+- The scattered gateway error types are consolidated under `GatewayError`, and
+  the runtime composition root moved to `runtime.py`. Integration per-entry state
+  moved onto `entry.runtime_data`, services register once per instance, and a
+  service resolves its target entry (raising on ambiguity) instead of always
+  taking the first one.
+- Dead options removed (`look_timeout_s`, the `show_tech` HA toggle). The version
+  is single-sourced, and the stale submodule CI is gone. The three wire mirrors
+  (gateway, integration, card) carry the same audio-stats fields.
+- Requires urmet-sdk 0.2.0.
+
 ## 0.1.5
 
 - You can hear the visitor: the video panel no longer stays muted, and the talk

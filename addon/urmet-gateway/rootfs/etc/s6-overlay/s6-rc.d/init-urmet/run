@@ -20,7 +20,6 @@ log_level="$(bashio::config 'log_level')"
 put URMET_EMAIL             "$(bashio::config 'email')"
 put URMET_PASSWORD          "$(bashio::config 'password')"
 put URMET_DOORPHONE_NAME    "$(bashio::config 'doorphone_name')"
-put URMET_GW_LOOK_TIMEOUT_S "$(bashio::config 'look_timeout_s')"
 put URMET_GW_LOG_LEVEL      "${log_level}"
 
 # An empty MAC must not be exported: the SDK would try to parse "" as a MAC and

@@ -94,7 +94,6 @@ belong in Home Assistant secrets (`!secret`), not in the options file in clear.
 | `password` | Urmet cloud account password. Use `!secret`. Never logged, never leaves the add-on. |
 | `doorphone_mac` | Panel MAC (`00:11:22:33:44:55` or with underscores). Optional: learned from the first ring when empty. |
 | `doorphone_name` | Label shown for the panel in Home Assistant. |
-| `look_timeout_s` | How long an unwatched "look at the door" call is held before release, 10 to 120 seconds. |
 | `log_level` | `debug`, `info`, `warning` or `error`. Use `debug` only while troubleshooting. |
 
 The Urmet cloud credentials are third-party device credentials, not Home Assistant

@@ -23,6 +23,7 @@ from homeassistant.components.event import EventDeviceClass, EventEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .commands import take_open
 from .const import (
     ACTUATOR_DOOR,
     ACTUATOR_GATE,
@@ -34,7 +35,6 @@ from .const import (
 from .coordinator import UrmetConfigEntry, UrmetCoordinator
 from .entity import UrmetEntity
 from .events import GatewayEvent, OpenEvent, RingEvent
-from .services import take_open
 
 EVENT_RING = "ring"
 
@@ -117,7 +117,7 @@ class ActuatorEvent(_UrmetEvent):
             return
         if event.actuator not in self._attr_event_types:
             return
-        pending = take_open(self.hass, self._entry.entry_id)
+        pending = take_open(self._entry)
         # Attribute the open to the user who asked, so the logbook reads "opened
         # by <person>" rather than crediting the integration's own callback.
         if pending.context is not None:

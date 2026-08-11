@@ -16,6 +16,7 @@ import threading
 from collections.abc import AsyncIterator, Callable
 from types import TracebackType
 
+from urmet_gateway.domain.errors import EventBusClosedError
 from urmet_gateway.domain.models import Event
 
 logger = logging.getLogger(__name__)
@@ -23,10 +24,6 @@ logger = logging.getLogger(__name__)
 # Events a subscriber may fall behind by before it is dropped. One that keeps up
 # never holds more than one or two.
 DEFAULT_CAPACITY = 64
-
-
-class EventBusClosedError(RuntimeError):
-    """A subscription was asked for after the bus had been closed."""
 
 
 class Subscription:

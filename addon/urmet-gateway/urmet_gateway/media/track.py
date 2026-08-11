@@ -31,6 +31,8 @@ from aiortc.rtcrtpparameters import RTCRtpCodecCapability
 from av.packet import Packet
 from av.video.stream import VideoStream
 
+from urmet_gateway.domain.errors import H264UnavailableError
+
 logger = logging.getLogger(__name__)
 
 # The RTP clock every H.264 payload is timed on.
@@ -45,10 +47,6 @@ QUEUE_DEPTH = 60
 # retransmission stream that repairs it.
 H264_MIME = "video/H264"
 RTX_MIME = "video/rtx"
-
-
-class H264UnavailableError(RuntimeError):
-    """This aiortc build publishes no H.264, so nothing could be pinned."""
 
 
 class VideoPacketTrack(MediaStreamTrack):

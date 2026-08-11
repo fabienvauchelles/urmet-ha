@@ -12,8 +12,7 @@ integration's entities.
 2. Install **Urmet doorphone gateway**. The pre-built `amd64` image is pulled
    from `ghcr.io/fabienvauchelles/urmet-gateway`, so there is no local build.
 3. Configure the options: `email` and `password` (the Urmet cloud account),
-   `doorphone_mac`, `doorphone_name`. Leave `look_timeout_s` and `log_level` at
-   their defaults.
+   `doorphone_mac`, `doorphone_name`. Leave `log_level` at its default.
 4. Start the add-on. `boot: auto` keeps it started across reboots.
 5. Open the add-on's ingress panel and confirm `GET /api/health` answers
    `{"ok": true}`. The port opens before SIP registration, so health answers

@@ -13,15 +13,22 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Context, HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .client import GatewayClient, GatewayConnectionError
 from .const import DOMAIN, LOGGER
 from .events import GatewayEvent, StateEvent
 from .models import StateView
+
+if TYPE_CHECKING:
+    # repairs imports this module for the entry type, so the monitor it owns is
+    # named here for typing only. The annotations are lazy, so nothing imports
+    # back at runtime and there is no cycle.
+    from .repairs import UrmetIssueMonitor
 
 
 class UrmetCoordinator(DataUpdateCoordinator[StateView]):
@@ -59,12 +66,32 @@ class UrmetCoordinator(DataUpdateCoordinator[StateView]):
         self._unsubs.clear()
 
 
+@dataclass(frozen=True, slots=True)
+class PendingOpen:
+    """What is known about the open in flight: its source, and who asked for it.
+
+    ``context`` carries the Home Assistant user behind the press or the service
+    call, so the event entity can attribute the open to a person in the logbook.
+    It is ``None`` when the caller was not a user.
+    """
+
+    origin: str
+    context: Context | None
+
+
 @dataclass
 class UrmetRuntimeData:
-    """Stored on ``entry.runtime_data`` (DESIGN 6.2)."""
+    """Stored on ``entry.runtime_data``: everything one doorphone owns (DESIGN 6.2).
+
+    ``pending_open`` and ``issue_monitor`` are per-entry state, so they live here
+    rather than in a global ``hass.data`` map keyed by entry id: unloading the
+    entry drops them with it, and two panels can never read each other's.
+    """
 
     client: GatewayClient
     coordinator: UrmetCoordinator
+    pending_open: PendingOpen | None = None
+    issue_monitor: UrmetIssueMonitor | None = None
 
 
 type UrmetConfigEntry = ConfigEntry[UrmetRuntimeData]

@@ -29,16 +29,13 @@ from av.frame import Frame
 from av.packet import Packet
 from av.stream import Stream
 
+from urmet_gateway.domain.errors import UplinkFormatError
 from urmet_gateway.media.audio.bridge import AudioBridge
 from urmet_gateway.media.audio.g711 import PCMA_TIME_BASE, to_alaw
 
 logger = logging.getLogger(__name__)
 
 _BYTES_PER_SAMPLE = 2
-
-
-class UplinkFormatError(ValueError):
-    """The browser's track decoded to PCM the doorphone's tap cannot take."""
 
 
 class DoorphoneAudioTrack(MediaStreamTrack):

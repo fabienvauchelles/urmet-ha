@@ -6,12 +6,7 @@ pjsua2: the frameworks stay in the outer layers, reached through the ports.
 """
 
 from urmet_gateway.usecases.calls import CallBook, TrackedCall
-from urmet_gateway.usecases.events import (
-    DEFAULT_CAPACITY,
-    EventBus,
-    EventBusClosedError,
-    Subscription,
-)
+from urmet_gateway.usecases.events import DEFAULT_CAPACITY, EventBus, Subscription
 from urmet_gateway.usecases.service import DoorphoneService
 from urmet_gateway.usecases.sessions import MediaSessions
 from urmet_gateway.usecases.state import StateReader
@@ -21,7 +16,6 @@ __all__ = [
     "CallBook",
     "DoorphoneService",
     "EventBus",
-    "EventBusClosedError",
     "MediaSessions",
     "StateReader",
     "Subscription",

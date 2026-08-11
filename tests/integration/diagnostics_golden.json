@@ -6,8 +6,7 @@
       "port": 0
     },
     "options": {
-      "ring_coalesce_s": 5,
-      "show_tech_panel": true
+      "ring_coalesce_s": 5
     }
   },
   "gateway": {

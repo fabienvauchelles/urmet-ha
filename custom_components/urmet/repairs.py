@@ -22,7 +22,8 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components.repairs import RepairsFlow
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import issue_registry as ir
 
 from .const import DOMAIN
@@ -36,7 +37,6 @@ ISSUE_CALLS_NOT_ROUTED = "calls_not_routed"
 AUTH_STATUS_CODES = frozenset({401, 403})
 ROUTE_503_THRESHOLD = 3
 _SUCCESS_STATUSES = frozenset({200, 201, 204})
-_MONITORS: str = f"{DOMAIN}_issue_monitors"
 
 
 def _issue_id(base: str, entry_id: str) -> str:
@@ -103,25 +103,25 @@ class UrmetIssueMonitor:
 
 
 @callback
-def async_attach_issue_monitor(hass: HomeAssistant, entry: UrmetConfigEntry) -> Any:
+def async_attach_issue_monitor(entry: UrmetConfigEntry) -> CALLBACK_TYPE:
     """Subscribe a per-entry issue monitor; return its unsubscribe callback."""
-    monitor = UrmetIssueMonitor(hass, entry.entry_id)
-    monitors: dict[str, UrmetIssueMonitor] = hass.data.setdefault(_MONITORS, {})
-    monitors[entry.entry_id] = monitor
-    unsub_events = entry.runtime_data.client.add_event_listener(monitor.handle_event)
+    data = entry.runtime_data
+    monitor = UrmetIssueMonitor(data.coordinator.hass, entry.entry_id)
+    data.issue_monitor = monitor
+    unsub_events = data.client.add_event_listener(monitor.handle_event)
 
     @callback
     def _detach() -> None:
         unsub_events()
-        monitors.pop(entry.entry_id, None)
+        data.issue_monitor = None
 
     return _detach
 
 
 @callback
-def note_offer_status(hass: HomeAssistant, entry_id: str, status: int) -> None:
+def note_offer_status(entry: UrmetConfigEntry, status: int) -> None:
     """Report a WebRTC offer HTTP status to the entry's issue monitor."""
-    monitor = hass.data.get(_MONITORS, {}).get(entry_id)
+    monitor = entry.runtime_data.issue_monitor
     if monitor is not None:
         monitor.note_offer_status(status)
 
@@ -132,10 +132,10 @@ class CallsNotRoutedRepairFlow(RepairsFlow):
     def __init__(self, data: dict[str, Any] | None) -> None:
         self._entry_id = (data or {}).get("entry_id")
 
-    async def async_step_init(self, user_input: dict[str, str] | None = None) -> Any:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> FlowResult:
         return await self.async_step_confirm()
 
-    async def async_step_confirm(self, user_input: dict[str, str] | None = None) -> Any:
+    async def async_step_confirm(self, user_input: dict[str, str] | None = None) -> FlowResult:
         if user_input is not None:
             if isinstance(self._entry_id, str):
                 await self.hass.config_entries.async_reload(self._entry_id)

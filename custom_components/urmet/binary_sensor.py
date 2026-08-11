@@ -16,7 +16,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import ACTIVE_CALL_STATES, KEY_CALL_ACTIVE, KEY_REGISTERED
+from .const import KEY_CALL_ACTIVE, KEY_REGISTERED
 from .coordinator import UrmetConfigEntry, UrmetCoordinator
 from .entity import UrmetEntity
 
@@ -65,4 +65,4 @@ class CallActiveBinarySensor(UrmetEntity, BinarySensorEntity):
         data = self.state_view
         if data is None:
             return None
-        return any(call.state in ACTIVE_CALL_STATES for call in data.calls)
+        return any(call.state.is_active for call in data.calls)

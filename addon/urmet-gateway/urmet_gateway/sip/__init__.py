@@ -6,7 +6,9 @@ is a call's media tap with the handle bound and the thread hop made.
 ``RegistrationSupervisor``
 keeps the binding alive and reports honestly when it cannot, ``ClientHolder`` is
 the indirection the command path resolves the current client through, and
-``GatewayRuntime`` boots the supervisor and tears the stack down in one order.
+``registration_publisher`` puts what the supervisor reports onto the event bus.
+The runtime that boots and tears the stack down is composition, not an adapter,
+and lives in ``urmet_gateway.runtime``.
 """
 
 from urmet_gateway.sip.bridge import (
@@ -15,8 +17,8 @@ from urmet_gateway.sip.bridge import (
     DoorbellSource,
     RingHandler,
 )
-from urmet_gateway.sip.holder import ClientHolder, NoClientError, rebuilding_factory
-from urmet_gateway.sip.lifecycle import GatewayRuntime, registration_publisher
+from urmet_gateway.sip.holder import ClientHolder, rebuilding_factory
+from urmet_gateway.sip.publisher import registration_publisher
 from urmet_gateway.sip.supervision import (
     LIVENESS_INTERVAL_S,
     ClientFactory,
@@ -26,7 +28,7 @@ from urmet_gateway.sip.supervision import (
     SupervisedClient,
 )
 from urmet_gateway.sip.tap import MAX_TAP_BYTES, WorkerTap
-from urmet_gateway.sip.worker import SdkWorker, WorkerStoppedError
+from urmet_gateway.sip.worker import SdkWorker
 
 __all__ = [
     "LIVENESS_INTERVAL_S",
@@ -36,15 +38,12 @@ __all__ = [
     "ClientFactory",
     "ClientHolder",
     "DoorbellSource",
-    "GatewayRuntime",
-    "NoClientError",
     "OnConnected",
     "RegistrationOutcome",
     "RegistrationSupervisor",
     "RingHandler",
     "SdkWorker",
     "SupervisedClient",
-    "WorkerStoppedError",
     "WorkerTap",
     "rebuilding_factory",
     "registration_publisher",

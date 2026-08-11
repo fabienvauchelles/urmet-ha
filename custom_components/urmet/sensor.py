@@ -27,7 +27,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    ACTIVE_CALL_STATES,
     ACTUATOR_DOOR,
     ACTUATOR_GATE,
     KEY_CALL_STATE,
@@ -47,16 +46,12 @@ from .events import (
     RingEvent,
     WebrtcEvent,
 )
+from .models import CallState
 
-CALL_STATE_IDLE = "idle"
-CALL_STATE_OPTIONS = [
-    CALL_STATE_IDLE,
-    "ringing",
-    "connecting",
-    "streaming",
-    "ended",
-    "error",
-]
+# What the ENUM sensor advertises: every call state the gateway names. UNKNOWN
+# is deliberately not one of them, so a state this build does not know reports
+# None rather than a value outside the declared options.
+CALL_STATE_OPTIONS = [state.value for state in CallState if state is not CallState.UNKNOWN]
 
 
 async def async_setup_entry(
@@ -96,9 +91,9 @@ class CallStateSensor(UrmetEntity, SensorEntity):
         data = self.state_view
         if data is None:
             return None
-        active = next((c.state for c in data.calls if c.state in ACTIVE_CALL_STATES), None)
-        value = active or (data.calls[-1].state if data.calls else CALL_STATE_IDLE)
-        return value if value in CALL_STATE_OPTIONS else None
+        active = next((c.state for c in data.calls if c.state.is_active), None)
+        value = active or (data.calls[-1].state if data.calls else CallState.IDLE)
+        return value.value if value in CALL_STATE_OPTIONS else None
 
 
 class _EventSensor(UrmetEntity, RestoreSensor):
@@ -207,11 +202,7 @@ class LastErrorSensor(_EventSensor):
     def _reduce(self, event: GatewayEvent) -> str | None:
         if isinstance(event, RegistrationEvent) and event.reason:
             return event.reason
-        if (
-            isinstance(event, WebrtcEvent)
-            and event.reason
-            and event.state in ("degraded", "closed")
-        ):
+        if isinstance(event, WebrtcEvent) and event.reason and event.state.is_faulted:
             return event.reason
         return None
 

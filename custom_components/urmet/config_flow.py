@@ -27,11 +27,9 @@ from .const import (
     CONF_HOST,
     CONF_PORT,
     CONF_RING_COALESCE,
-    CONF_SHOW_TECH,
     DEFAULT_HOST,
     DEFAULT_PORT,
     DEFAULT_RING_COALESCE,
-    DEFAULT_SHOW_TECH,
     DEVICE_NAME,
     DOMAIN,
 )
@@ -159,7 +157,11 @@ class UrmetConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class UrmetOptionsFlow(OptionsFlow):
-    """Runtime options: ring coalescing window and the tech panel toggle."""
+    """Runtime options: the ring coalescing window.
+
+    The card's technical panel is not here: it is a card config key the card owns
+    and reads for itself, so an option stored on the entry never reached it.
+    """
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
@@ -171,10 +173,6 @@ class UrmetOptionsFlow(OptionsFlow):
                     CONF_RING_COALESCE,
                     default=options.get(CONF_RING_COALESCE, DEFAULT_RING_COALESCE),
                 ): vol.All(int, vol.Range(min=0, max=60)),
-                vol.Optional(
-                    CONF_SHOW_TECH,
-                    default=options.get(CONF_SHOW_TECH, DEFAULT_SHOW_TECH),
-                ): bool,
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)

@@ -1,8 +1,15 @@
 # Action definitions for the Urmet doorphone (DESIGN 6.5). Names and
 # descriptions live in strings.json / translations; this file declares the
-# fields and their selectors for the UI.
+# target, the fields and their selectors for the UI.
+#
+# Every action carries the same optional target: which doorphone it is aimed at.
+# With one panel set up it may be left out. With several, an action that names
+# none is refused rather than guessing.
 
 answer:
+  target:
+    device:
+      integration: urmet
   fields:
     call_id:
       required: false
@@ -11,6 +18,9 @@ answer:
         text:
 
 hang_up:
+  target:
+    device:
+      integration: urmet
   fields:
     call_id:
       required: false
@@ -19,6 +29,9 @@ hang_up:
         text:
 
 look:
+  target:
+    device:
+      integration: urmet
   fields:
     want_video:
       required: false
@@ -27,6 +40,9 @@ look:
         boolean:
 
 open:
+  target:
+    device:
+      integration: urmet
   fields:
     actuator:
       required: true
@@ -38,6 +54,9 @@ open:
             - gate
 
 set_microphone:
+  target:
+    device:
+      integration: urmet
   fields:
     muted:
       required: true

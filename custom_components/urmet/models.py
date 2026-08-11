@@ -15,7 +15,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from enum import StrEnum
+from typing import Any, Final
 
 from homeassistant.util import dt as dt_util
 
@@ -24,6 +25,68 @@ def parse_at(data: Mapping[str, Any]) -> datetime | None:
     """Parse the ``at`` field every event carries (ISO 8601 UTC)."""
     raw = data.get("at")
     return dt_util.parse_datetime(raw) if isinstance(raw, str) else None
+
+
+class CallState(StrEnum):
+    """Where a dialog stands, mirroring the gateway's ``CallState`` (DESIGN 5.2).
+
+    ``UNKNOWN`` is where a value this build does not know lands, i.e. a gateway
+    ahead of the integration. It is a named member rather than a raw string kept
+    verbatim, so a comparison against the vocabulary can never quietly miss.
+    """
+
+    IDLE = "idle"
+    RINGING = "ringing"
+    CONNECTING = "connecting"
+    STREAMING = "streaming"
+    ENDED = "ended"
+    ERROR = "error"
+    UNKNOWN = "unknown"
+
+    @property
+    def is_active(self) -> bool:
+        """Ringing, connecting or streaming: the panel is engaged (DESIGN 6.5)."""
+        return self in ACTIVE_CALL_STATES
+
+    @classmethod
+    def _missing_(cls, value: object) -> CallState:
+        return cls.UNKNOWN
+
+
+ACTIVE_CALL_STATES: Final = frozenset(
+    {CallState.RINGING, CallState.CONNECTING, CallState.STREAMING}
+)
+
+
+class CallDirection(StrEnum):
+    """Which side placed a dialog: the panel rang us, or we called the panel."""
+
+    INCOMING = "incoming"
+    OUTGOING = "outgoing"
+    UNKNOWN = "unknown"
+
+    @classmethod
+    def _missing_(cls, value: object) -> CallDirection:
+        return cls.UNKNOWN
+
+
+class SessionState(StrEnum):
+    """Where a browser media leg stands, mirroring the gateway (DESIGN 5.2)."""
+
+    OPEN = "open"
+    WAITING = "waiting"
+    DEGRADED = "degraded"
+    CLOSED = "closed"
+    UNKNOWN = "unknown"
+
+    @property
+    def is_faulted(self) -> bool:
+        """Lost a half or gone: the state a session reason is worth reporting for."""
+        return self in {SessionState.DEGRADED, SessionState.CLOSED}
+
+    @classmethod
+    def _missing_(cls, value: object) -> SessionState:
+        return cls.UNKNOWN
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,18 +103,18 @@ class DoorphoneView:
 
 @dataclass(frozen=True, slots=True)
 class CallView:
-    """A live dialog. ``state`` in idle|ringing|connecting|streaming|ended|error."""
+    """A live dialog: what it is doing, and who placed it."""
 
     id: str
-    state: str
-    direction: str
+    state: CallState
+    direction: CallDirection
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> CallView:
         return cls(
             id=str(data["id"]),
-            state=str(data.get("state", "")),
-            direction=str(data.get("direction", "")),
+            state=CallState(data.get("state", "")),
+            direction=CallDirection(data.get("direction", "")),
         )
 
 
@@ -105,11 +168,11 @@ class AudioStats:
 
 @dataclass(frozen=True, slots=True)
 class SessionView:
-    """A browser media leg. ``state`` in open|waiting|degraded|closed."""
+    """A browser media leg, and what is flowing through it."""
 
     session_id: str
     call_id: str
-    state: str
+    state: SessionState
     connection: str
     reason: str
     video: VideoStats | None
@@ -122,7 +185,7 @@ class SessionView:
         return cls(
             session_id=str(data["session_id"]),
             call_id=str(data.get("call_id", "")),
-            state=str(data.get("state", "")),
+            state=SessionState(data.get("state", "")),
             connection=str(data.get("connection", "")),
             reason=str(data.get("reason", "")),
             video=VideoStats.from_dict(video) if isinstance(video, Mapping) else None,

@@ -21,7 +21,7 @@ from .const import (
     EVENT_STATE,
     EVENT_WEBRTC,
 )
-from .models import DoorphoneView, StateView, parse_at
+from .models import CallDirection, CallState, DoorphoneView, SessionState, StateView, parse_at
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,8 +43,8 @@ class RingEvent:
 class CallEvent:
     at: datetime | None
     call_id: str
-    state: str
-    direction: str | None
+    state: CallState
+    direction: CallDirection | None
     type: str = EVENT_CALL
 
 
@@ -72,7 +72,7 @@ class WebrtcEvent:
     at: datetime | None
     session_id: str
     call_id: str | None
-    state: str
+    state: SessionState
     reason: str
     type: str = EVENT_WEBRTC
 
@@ -93,6 +93,10 @@ GatewayEvent = (
 
 def _opt_str(value: Any) -> str | None:
     return str(value) if value is not None else None
+
+
+def _direction(value: Any) -> CallDirection | None:
+    return CallDirection(value) if value is not None else None
 
 
 def _doorphone(value: Any) -> DoorphoneView | None:
@@ -118,8 +122,8 @@ def parse_event(data: Mapping[str, Any]) -> GatewayEvent:
         return CallEvent(
             at=parse_at(data),
             call_id=str(data.get("call_id", "")),
-            state=str(data.get("state", "")),
-            direction=_opt_str(data.get("direction")),
+            state=CallState(data.get("state", "")),
+            direction=_direction(data.get("direction")),
         )
     if kind == EVENT_OPEN:
         return OpenEvent(
@@ -142,7 +146,7 @@ def parse_event(data: Mapping[str, Any]) -> GatewayEvent:
             at=parse_at(data),
             session_id=str(data.get("session_id", "")),
             call_id=_opt_str(data.get("call_id")),
-            state=str(data.get("state", "")),
+            state=SessionState(data.get("state", "")),
             reason=str(data.get("reason", "")),
         )
     return UnknownEvent(at=parse_at(data), type=kind, raw=data)

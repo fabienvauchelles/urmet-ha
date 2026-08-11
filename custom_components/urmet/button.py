@@ -13,6 +13,12 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .commands import (
+    async_answer,
+    async_hang_up,
+    async_look,
+    async_open,
+)
 from .const import (
     ACTUATOR_DOOR,
     ACTUATOR_GATE,
@@ -25,12 +31,6 @@ from .const import (
 )
 from .coordinator import UrmetConfigEntry, UrmetCoordinator
 from .entity import UrmetEntity
-from .services import (
-    async_answer,
-    async_hang_up,
-    async_look,
-    async_open,
-)
 
 
 async def async_setup_entry(
@@ -71,7 +71,6 @@ class OpenDoorButton(_UrmetButton):
 
     async def async_press(self) -> None:
         await async_open(
-            self.hass,
             self._entry,
             actuator=ACTUATOR_DOOR,
             origin=ORIGIN_CARD,
@@ -85,7 +84,6 @@ class OpenGateButton(_UrmetButton):
 
     async def async_press(self) -> None:
         await async_open(
-            self.hass,
             self._entry,
             actuator=ACTUATOR_GATE,
             origin=ORIGIN_CARD,
@@ -98,7 +96,7 @@ class LookButton(_UrmetButton):
     _translation_key = "regarder"
 
     async def async_press(self) -> None:
-        await async_look(self.hass, self._entry, want_video=True)
+        await async_look(self._entry, want_video=True)
 
 
 class AnswerButton(_UrmetButton):
@@ -106,7 +104,7 @@ class AnswerButton(_UrmetButton):
     _translation_key = "repondre"
 
     async def async_press(self) -> None:
-        await async_answer(self.hass, self._entry, call_id=None)
+        await async_answer(self._entry, call_id=None)
 
 
 class HangUpButton(_UrmetButton):
@@ -114,4 +112,4 @@ class HangUpButton(_UrmetButton):
     _translation_key = "raccrocher"
 
     async def async_press(self) -> None:
-        await async_hang_up(self.hass, self._entry, call_id=None)
+        await async_hang_up(self._entry, call_id=None)

@@ -32,8 +32,7 @@ from _probe_common import (
     timestamped_log_file,
 )
 
-from urmet_sdk.config import Settings
-from urmet_sdk.sip.messages import doorphone_from_uri
+from urmet_sdk import Settings, doorphone_from_uri
 from urmet_sdk.sip.pjsip_account import build_acc_config
 from urmet_sdk.sip.pjsip_binding import contained, load_pjsua2
 from urmet_sdk.sip.pjsip_calls import NO_STREAM

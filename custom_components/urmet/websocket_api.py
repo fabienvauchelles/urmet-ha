@@ -124,7 +124,7 @@ async def websocket_webrtc_offer(
     except GatewayConnectionError as err:
         connection.send_error(msg["id"], websocket_api.ERR_UNKNOWN_ERROR, str(err))
         return
-    note_offer_status(hass, entry.entry_id, response.status)
+    note_offer_status(entry, response.status)
     if response.status != 201:
         connection.send_error(
             msg["id"], websocket_api.ERR_UNKNOWN_ERROR, _detail(response.body, response.status)

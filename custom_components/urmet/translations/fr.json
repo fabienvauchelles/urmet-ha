@@ -37,8 +37,7 @@
       "init": {
         "title": "Options du portier Urmet",
         "data": {
-          "ring_coalesce_s": "Fenêtre de regroupement des sonneries (secondes)",
-          "show_tech_panel": "Afficher le panneau technique sur la carte"
+          "ring_coalesce_s": "Fenêtre de regroupement des sonneries (secondes)"
         }
       }
     }

@@ -8,8 +8,6 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-# The SDK submodule carries its own tooling and must never be linted with ours.
-extend-exclude = ["addon/urmet-gateway/vendor"]
 
 [tool.ruff.lint]
 # TID251 (banned-api) carries the dependency rule; the rest mirror the SDK set.

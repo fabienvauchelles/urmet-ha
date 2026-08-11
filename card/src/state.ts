@@ -77,10 +77,17 @@ export interface DoorphoneWire {
   name: string;
 }
 
+// The gateway's own call and session vocabulary, spelled out rather than typed
+// as string: a comparison against a value the gateway never sends is a compile
+// error here, the way it is an enum mismatch in the gateway and the integration.
+export type CallStateWire = "idle" | "ringing" | "connecting" | "streaming" | "ended" | "error";
+export type CallDirectionWire = "incoming" | "outgoing";
+export type SessionStateWire = "open" | "waiting" | "degraded" | "closed";
+
 export interface CallWire {
   id: string;
-  state: string; // idle|ringing|connecting|streaming|ended|error
-  direction: string;
+  state: CallStateWire;
+  direction: CallDirectionWire;
 }
 
 export interface VideoStatsWire {
@@ -90,11 +97,17 @@ export interface VideoStatsWire {
   packets_dropped: number;
 }
 
+// Every counter the gateway publishes, in its order. The three partial/dropped
+// readings are the ones that say a voice path is losing frames rather than
+// merely carrying few, so the panel must be able to show them.
 export interface AudioStatsWire {
   from_doorphone: number;
   to_browser: number;
   to_doorphone: number;
   silence_sent: number;
+  partial_from_doorphone: number;
+  dropped_from_doorphone: number;
+  dropped_to_doorphone: number;
   max_callback_ms: number;
   budget_ms: number;
 }
@@ -102,7 +115,7 @@ export interface AudioStatsWire {
 export interface SessionWire {
   session_id: string;
   call_id: string;
-  state: string; // open|waiting|degraded|closed
+  state: SessionStateWire;
   connection: string;
   reason: string;
   video: VideoStatsWire | null;
@@ -131,10 +144,10 @@ export interface CardViewModel {
   degraded: boolean;
 }
 
-const RINGING = "ringing";
-const CONNECTING = "connecting";
-const STREAMING = "streaming";
-const INCOMING = "incoming";
+const RINGING: CallStateWire = "ringing";
+const CONNECTING: CallStateWire = "connecting";
+const STREAMING: CallStateWire = "streaming";
+const INCOMING: CallDirectionWire = "incoming";
 
 export function deriveViewModel(state?: StateWire): CardViewModel {
   const calls = state?.calls ?? [];

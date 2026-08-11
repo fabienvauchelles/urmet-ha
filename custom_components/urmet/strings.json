@@ -37,8 +37,7 @@
       "init": {
         "title": "Urmet doorphone options",
         "data": {
-          "ring_coalesce_s": "Ring coalescing window (seconds)",
-          "show_tech_panel": "Show the technical panel on the card"
+          "ring_coalesce_s": "Ring coalescing window (seconds)"
         }
       }
     }

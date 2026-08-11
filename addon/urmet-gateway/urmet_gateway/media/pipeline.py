@@ -19,8 +19,14 @@ from typing import Protocol
 
 from av.packet import Packet
 from av.video.stream import VideoStream
-from urmet_sdk import CallError, VideoFormat
+from urmet_sdk import VideoFormat
 
+from urmet_gateway.domain.errors import (
+    CallError,
+    DownlinkNotDrainingError,
+    DownlinkNotStartedError,
+    StaleArmError,
+)
 from urmet_gateway.media.encoder import EncoderRun
 from urmet_gateway.media.track import VideoPacketTrack
 from urmet_gateway.media.watchdog import Stall, Watchdog
@@ -35,18 +41,6 @@ SILENCE_TIMEOUT_S = 8.0
 # the recorder writes nothing for ~4 s after the tap and the first byte lands ~10 s,
 # so it needs a budget of its own (sharing the silence one killed pipelines early).
 STARTUP_TIMEOUT_S = 25.0
-
-
-class DownlinkNotStartedError(RuntimeError):
-    """The downlink was asked for something it only has once it has started."""
-
-
-class StaleArmError(CallError):
-    """An arm carrying a generation the pipeline has already moved past (trap 15)."""
-
-
-class DownlinkNotDrainingError(CallError):
-    """An arm attempted while no reader drains the pipe (trap 2)."""
 
 
 class VideoTap(Protocol):

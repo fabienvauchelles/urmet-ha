@@ -25,8 +25,9 @@ from typing import Any
 from aiohttp import WSCloseCode, WSMsgType, web
 
 from urmet_gateway.constants import WS_HEARTBEAT_S, WS_WRITER_LIMIT
+from urmet_gateway.domain.errors import EventBusClosedError
 from urmet_gateway.domain.models import Event, StateEvent
-from urmet_gateway.usecases import DoorphoneService, EventBus, EventBusClosedError, Subscription
+from urmet_gateway.usecases import DoorphoneService, EventBus, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +105,7 @@ async def _read(ws: web.WebSocketResponse) -> None:
 
 async def _either(*sides: Coroutine[Any, Any, None]) -> None:
     """Run both sides, stop at the first one to end, and raise what ended it."""
-    tasks = [asyncio.ensure_future(side) for side in sides]
+    tasks = [asyncio.create_task(side, name=f"urmet-ws-{side.__qualname__}") for side in sides]
     try:
         done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
     finally:

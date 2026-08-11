@@ -19,14 +19,12 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import ParamSpec, TypeVar
 
+from urmet_gateway.domain.errors import WorkerStoppedError
+
 logger = logging.getLogger(__name__)
 
 P = ParamSpec("P")
 T = TypeVar("T")
-
-
-class WorkerStoppedError(RuntimeError):
-    """An SDK call was submitted after the worker had been shut down."""
 
 
 class SdkWorker:

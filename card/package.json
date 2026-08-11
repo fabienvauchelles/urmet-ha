@@ -1,6 +1,6 @@
 {
   "name": "urmet-portier-card",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Home Assistant Lovelace card for the Urmet doorphone gateway",
   "license": "MIT",
   "private": true,

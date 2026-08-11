@@ -33,10 +33,9 @@ from _probe_common import (
     refuse_actuators,
 )
 
-from urmet_sdk import PjsipTransport
+from urmet_sdk import CallHandle, PjsipTransport
 from urmet_sdk.domain.models import RegistrationState
 from urmet_sdk.errors import UrmetError
-from urmet_sdk.sip.protocol import CallHandle
 
 log = configure_logging("probe_keepalive")
 

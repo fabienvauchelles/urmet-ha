@@ -20,11 +20,6 @@ configuration:
   doorphone_name:
     name: Doorphone name
     description: The label shown for the panel in Home Assistant.
-  look_timeout_s:
-    name: Look call timeout (seconds)
-    description: >-
-      How long an on-demand "look at the door" call is held before it is
-      released when nobody is watching it. Between 10 and 120.
   log_level:
     name: Log level
     description: How much the gateway logs. Use debug only while troubleshooting.

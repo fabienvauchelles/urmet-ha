@@ -40,16 +40,16 @@ from urmet_sdk import (
     PjsipTransport,
     Settings,
     UrmetClient,
+    director_failures,
 )
-from urmet_sdk.sip.pjsip_binding import director_failures
 
 from urmet_gateway.http import create_app, utc_now
 from urmet_gateway.media_factory import MediaSessionFactory
+from urmet_gateway.runtime import GatewayRuntime
 from urmet_gateway.settings import GatewaySettings
 from urmet_gateway.sip import (
     CallbackBridge,
     ClientHolder,
-    GatewayRuntime,
     RegistrationSupervisor,
     SdkWorker,
     rebuilding_factory,
@@ -182,7 +182,7 @@ async def build_app(gateway: GatewaySettings, sdk_settings: Settings) -> web.App
         bus=bus,
         clock=utc_now,
         settings_echo=lambda: _settings_echo(gateway, sdk_settings),
-        failures=lambda: director_failures.count,
+        failures=lambda: director_failures().count,
         diag_dir=DIAG_DIR,
         on_startup=runtime.start,
         on_cleanup=runtime.shutdown,

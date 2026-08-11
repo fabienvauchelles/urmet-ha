@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from urmet_gateway.domain.errors import NoClientError
+
 
 def rebuilding_factory[T](build: Callable[[], T]) -> Callable[[], T]:
     """Hand the eagerly built client back once, then a fresh build on every rebuild.
@@ -33,10 +35,6 @@ def rebuilding_factory[T](build: Callable[[], T]) -> Callable[[], T]:
         return build()
 
     return factory
-
-
-class NoClientError(RuntimeError):
-    """A command reached the holder before any client had been built."""
 
 
 class ClientHolder[T]:

@@ -41,6 +41,13 @@ export function renderTech(opts: TechOpts): TemplateResult {
           audio ? `${audio.to_doorphone} (silence ${audio.silence_sent})` : "-",
         )}
         ${row(
+          "Audio perdu",
+          audio
+            ? `${audio.dropped_from_doorphone} entrants / ${audio.dropped_to_doorphone} sortants` +
+              ` (${audio.partial_from_doorphone} partiels)`
+            : "-",
+        )}
+        ${row(
           "Callback audio",
           audio ? `${audio.max_callback_ms.toFixed(1)} / ${audio.budget_ms.toFixed(1)} ms` : "-",
         )}

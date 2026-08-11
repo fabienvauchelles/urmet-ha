@@ -10,13 +10,10 @@ jobs:
     # relies on is validated for that arch alone.
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout with the SDK submodule
+      # urmet-sdk is a published PyPI dependency, so there is nothing to check out
+      # beside this repository: `make build` pip-installs it into the gateway venv.
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          # The urmet-sdk submodule is a private repo reached over SSH. The deploy
-          # key is used for the main checkout and every submodule.
-          ssh-key: ${{ secrets.URMET_SDK_DEPLOY_KEY }}
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5

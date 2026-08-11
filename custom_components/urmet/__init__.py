@@ -28,7 +28,7 @@ from .coordinator import (
     UrmetRuntimeData,
 )
 from .repairs import async_attach_issue_monitor
-from .services import async_setup_services, async_unload_services
+from .services import async_setup_services
 from .websocket_api import async_register_websocket_api
 
 # The entity platforms (DESIGN 6.3). WP9 owns the card and the WebSocket API and
@@ -48,8 +48,9 @@ CARD_URL = f"/urmet/{CARD_FILENAME}"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the card and its WebSocket API once per Home Assistant instance."""
+    """Register the card, its WebSocket API and the actions, once per instance."""
     async_register_websocket_api(hass)
+    async_setup_services(hass)
     await _register_card(hass)
     return True
 
@@ -103,9 +104,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: UrmetConfigEntry) -> boo
     await coordinator.async_config_entry_first_refresh()
     await client.async_start()
     entry.runtime_data = UrmetRuntimeData(client=client, coordinator=coordinator)
-    entry.async_on_unload(async_attach_issue_monitor(hass, entry))
+    entry.async_on_unload(async_attach_issue_monitor(entry))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    async_setup_services(hass)
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
     return True
 
@@ -117,13 +117,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: UrmetConfigEntry) -> bo
         data = entry.runtime_data
         data.coordinator.async_release()
         await data.client.async_stop()
-        others = [
-            other
-            for other in hass.config_entries.async_loaded_entries(DOMAIN)
-            if other.entry_id != entry.entry_id
-        ]
-        if not others:
-            async_unload_services(hass)
     return unloaded
 
 

@@ -21,7 +21,7 @@ from collections.abc import Callable, Coroutine
 from contextlib import suppress
 from typing import Any
 
-from urmet_sdk import CallHandle, CallState
+from urmet_sdk import CallHandle
 
 from urmet_gateway.domain.errors import MediaUnavailableError, NoStreamingCallError
 from urmet_gateway.domain.models import Direction, SessionAnswer, SessionView, WebrtcEvent
@@ -158,7 +158,7 @@ class MediaSessions:
         tracked = self._calls.find(call_id)
         return (
             tracked is not None
-            and tracked.state is CallState.STREAMING
+            and tracked.state.is_streaming
             and tracked.direction is Direction.OUTGOING
         )
 
@@ -184,7 +184,7 @@ class MediaSessions:
         """The dialog an offer belongs to, or the reason there is not one."""
         if call_id is not None:
             tracked = self._calls.require(call_id)
-            if tracked.state is not CallState.STREAMING:
+            if not tracked.state.is_streaming:
                 raise NoStreamingCallError(
                     f"call {call_id} is {tracked.state} and carries no media to bridge"
                 )
