@@ -28,7 +28,7 @@ answers the panel or opens anything.
 
 - It notifies through `notify.notify`. Replace that with your own target, for
   example `notify.mobile_app_YOUR_PHONE`, or a notify group to reach several phones.
-- It snapshots `camera.frontyard`, an example id. Use your own yard camera, never
+- It snapshots `camera.your_yard_camera`, an example id. Use your own yard camera, never
   the panel: answering the panel to grab a still would stop the ring on the wired
   handsets.
 - Its entity ids assume the default doorphone name `Portier` (so
@@ -43,6 +43,6 @@ do not overwrite), then reload from Developer tools > YAML > Automations, or cal
 
 `scripts.portier.yaml` adds `script.portier_test`, which fires the whole
 notification chain once so you can check it lands on the phone without waiting for
-a real ring. It uses the same `notify.notify` and `camera.frontyard` placeholders,
+a real ring. It uses the same `notify.notify` and `camera.your_yard_camera` placeholders,
 so set those first. Merge the single `portier_test:` key into your `scripts.yaml`
 (it is a dict), reload with `script.reload`, then run the script.

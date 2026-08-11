@@ -2,7 +2,7 @@
 #
 # The content of this file is MERGED into /config/scripts.yaml on the box (a YAML
 # dict keyed by script id). See README.md. It reproduces, with tag portier_test
-# so it never collides with a real ring, exactly what a ring sends: the frontyard
+# so it never collides with a real ring, exactly what a ring sends: the yard
 # picture, both actions, the /portier/appel deep link, and the wake-a-screen pair.
 #
 # Tapping "Ouvrir la porte" here is inert unless a real ring happened in the last
@@ -26,7 +26,7 @@ portier_test:
           notification_icon: mdi:doorbell-video
           color: '#1E88E5'
           tag: portier_test
-          image: /api/camera_proxy/camera.frontyard
+          image: /api/camera_proxy/camera.your_yard_camera
           clickAction: "{{ vue }}"
           actions:
             - action: URI

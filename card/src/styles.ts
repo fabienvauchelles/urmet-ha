@@ -109,6 +109,12 @@ export const cardStyles = css`
     color: var(--urmet-muted);
     border-radius: 8px;
   }
+  .stage-empty-icon {
+    width: 28%;
+    max-width: 88px;
+    height: auto;
+    opacity: 0.7;
+  }
   .btn {
     border: none;
     border-radius: 8px;

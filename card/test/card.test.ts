@@ -15,11 +15,11 @@ type Card = HTMLElement & {
   shadowRoot: ShadowRoot | null;
 };
 
-const CAM = { entity_id: "camera.frontyard", state: "idle", attributes: { access_token: "tok" } };
+const CAM = { entity_id: "camera.preview", state: "idle", attributes: { access_token: "tok" } };
 
 function makeHass(extra: Record<string, unknown> = {}, camera: unknown = CAM): HomeAssistant {
   return {
-    states: { "camera.frontyard": camera, ...extra } as HomeAssistant["states"],
+    states: { "camera.preview": camera, ...extra } as HomeAssistant["states"],
     entities: {},
     connection: { subscribeMessage: async () => async () => {} },
     callWS: vi.fn().mockResolvedValue({}),
@@ -56,7 +56,7 @@ describe("setConfig", () => {
         type: "custom:urmet-portier-card",
         entry_id: "e1",
         auto_start: "always",
-        preview_camera: "camera.frontyard",
+        preview_camera: "camera.preview",
         show_tech: false,
         grid_options: { rows: 8 },
       }),
@@ -67,7 +67,7 @@ describe("setConfig", () => {
 describe("hass diffing", () => {
   it("does not re-render on a tick that leaves the tracked entities unchanged", () => {
     const el = create();
-    el.setConfig({ type: "custom:urmet-portier-card", entry_id: "e1" });
+    el.setConfig({ type: "custom:urmet-portier-card", entry_id: "e1", preview_camera: "camera.preview" });
     el.hass = makeHass();
     const spy = vi.spyOn(el, "requestUpdate");
     el.hass = makeHass({ "light.random": { entity_id: "light.random", state: "on", attributes: {} } });

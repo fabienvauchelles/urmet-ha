@@ -22,7 +22,7 @@ const CONFIRM_TEXT: Record<Actuator, string> = {
 
 const LABEL: Record<Actuator, string> = {
   door: "Ouvrir la porte",
-  gate: "Portail (pas à pas)",
+  gate: "Portail",
 };
 
 function tile(opts: OpenerOpts, actuator: Actuator): TemplateResult {

@@ -6,7 +6,7 @@
 #
 # Four concerns, five blocks:
 #   1. the actionable ring notification (block 1) and its open-action handler
-#      (block 2) form one feature: a ring puts the frontyard picture and two
+#      (block 2) form one feature: a ring puts the yard picture and two
 #      actions on the phone, deep-links the /portier/appel view, and never opens
 #      anything on its own;
 #   2. the wake-a-screen popup (block 3);
@@ -16,8 +16,8 @@
 # All notifications go through notify.notify here. Point it at your own target
 # instead (for example notify.mobile_app_YOUR_PHONE), or at a notify group if you
 # want the ring to fan out to several phones. The picture is always
-# camera.frontyard, never the panel, because answering the panel to grab a still
-# would stop the ring on the household handsets. camera.frontyard is an example
+# camera.your_yard_camera, never the panel, because answering the panel to grab a still
+# would stop the ring on the household handsets. camera.your_yard_camera is an example
 # id: use your own yard camera entity.
 
 # 1. Ring -> actionable notification. Does NOT open anything by itself.
@@ -46,7 +46,7 @@
           notification_icon: mdi:doorbell-video
           color: '#1E88E5'
           tag: portier
-          image: /api/camera_proxy/camera.frontyard
+          image: /api/camera_proxy/camera.your_yard_camera
           clickAction: "{{ vue }}"
           actions:
             - action: URI

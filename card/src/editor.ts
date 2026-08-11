@@ -2,7 +2,6 @@ import { LitElement, css, html, type TemplateResult } from "lit";
 import {
   AUTO_START_MODES,
   DEFAULT_AUTO_START,
-  DEFAULT_PREVIEW_CAMERA,
   type HomeAssistant,
   type UrmetCardConfig,
 } from "./state";
@@ -88,7 +87,8 @@ export class UrmetPortierCardEditor extends LitElement {
         <label>
           preview_camera
           <input
-            .value=${config.preview_camera ?? DEFAULT_PREVIEW_CAMERA}
+            placeholder="camera.your_door_camera (optional)"
+            .value=${config.preview_camera ?? ""}
             @change=${(event: Event) =>
               this._emit({ preview_camera: (event.target as HTMLInputElement).value })}
           />

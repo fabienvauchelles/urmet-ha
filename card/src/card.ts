@@ -5,7 +5,6 @@ import { LinkController } from "./controller";
 import {
   AUTO_START_MODES,
   DEFAULT_AUTO_START,
-  DEFAULT_PREVIEW_CAMERA,
   findDoorbellEntity,
   stageSentence,
   statesEqual,
@@ -58,7 +57,7 @@ export class UrmetPortierCard extends LitElement {
     this._config = {
       ...config,
       auto_start: mode,
-      preview_camera: config.preview_camera ?? DEFAULT_PREVIEW_CAMERA,
+      preview_camera: config.preview_camera,
       show_tech: config.show_tech ?? true,
     };
     this._link.config = this._config;
@@ -111,7 +110,8 @@ export class UrmetPortierCard extends LitElement {
   }
 
   private _cameraUrl(): string | undefined {
-    const entity = this._config?.preview_camera ?? DEFAULT_PREVIEW_CAMERA;
+    const entity = this._config?.preview_camera;
+    if (!entity) return undefined;
     const token = this._hass?.states[entity]?.attributes["access_token"];
     return typeof token === "string" ? `/api/camera_proxy_stream/${entity}?token=${token}` : undefined;
   }

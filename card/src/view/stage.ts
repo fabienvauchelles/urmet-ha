@@ -29,7 +29,13 @@ export function renderStage(opts: StageOpts): TemplateResult {
         ? html`<img class="stage-preview" src=${opts.cameraUrl} alt="Aperçu du portail" />`
         : nothing}
       ${!opts.hasRemote && !opts.cameraUrl
-        ? html`<div class="stage-empty">Aperçu indisponible</div>`
+        ? html`<div class="stage-empty">
+            <svg class="stage-empty-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="7" y="2.5" width="10" height="19" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+              <circle cx="12" cy="8" r="2" fill="currentColor" />
+              <rect x="10" y="13" width="4" height="1.5" rx="0.75" fill="currentColor" />
+            </svg>
+          </div>`
         : nothing}
       ${opts.sentence ? html`<div class="stage-note">${opts.sentence}</div>` : nothing}
     </div>

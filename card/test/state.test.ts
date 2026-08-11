@@ -111,16 +111,20 @@ describe("resolveEntry", () => {
 });
 
 describe("statesEqual and trackedIds", () => {
-  const cam = { entity_id: "camera.frontyard", state: "idle", attributes: {} };
+  const cam = { entity_id: "camera.preview", state: "idle", attributes: {} };
+  const cfg = { type: "x", preview_camera: "camera.preview" };
+  it("tracks nothing when no preview camera is configured", () => {
+    expect(trackedIds({ type: "x" })).toEqual([]);
+  });
   it("is stable when the tracked entity keeps its identity", () => {
-    const a = hass({}, { "camera.frontyard": cam });
-    const b = hass({}, { "camera.frontyard": cam, "light.x": { entity_id: "light.x", state: "on", attributes: {} } });
-    expect(statesEqual(a, b, trackedIds({ type: "x" }))).toBe(true);
+    const a = hass({}, { "camera.preview": cam });
+    const b = hass({}, { "camera.preview": cam, "light.x": { entity_id: "light.x", state: "on", attributes: {} } });
+    expect(statesEqual(a, b, trackedIds(cfg))).toBe(true);
   });
   it("differs when the tracked entity changes identity", () => {
-    const a = hass({}, { "camera.frontyard": cam });
-    const b = hass({}, { "camera.frontyard": { ...cam } });
-    expect(statesEqual(a, b, trackedIds({ type: "x" }))).toBe(false);
+    const a = hass({}, { "camera.preview": cam });
+    const b = hass({}, { "camera.preview": { ...cam } });
+    expect(statesEqual(a, b, trackedIds(cfg))).toBe(false);
   });
 });
 

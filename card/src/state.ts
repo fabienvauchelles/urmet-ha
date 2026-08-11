@@ -30,9 +30,9 @@ export type LinkState = "idle" | "answering" | "negotiating" | "waiting" | "live
 // The two physical openers the panel drives (DESIGN 6.5).
 export type Actuator = "door" | "gate";
 
-// The camera shown behind the ring and the stage until the WebRTC leg is live,
-// overridable per card through the `preview_camera` config key.
-export const DEFAULT_PREVIEW_CAMERA = "camera.frontyard";
+// A camera to show behind the ring and the stage until the WebRTC leg is live is
+// optional and set per card through the `preview_camera` config key; with none
+// set the stage shows a neutral placeholder instead of any specific entity.
 
 // --- Minimal Home Assistant surface the card actually uses ------------------
 
@@ -208,7 +208,8 @@ export function resolveEntry(config: UrmetCardConfig, hass: HomeAssistant): Entr
 }
 
 export function trackedIds(config: UrmetCardConfig | undefined, doorbell?: string): string[] {
-  const ids = [config?.preview_camera ?? DEFAULT_PREVIEW_CAMERA];
+  const ids: string[] = [];
+  if (config?.preview_camera) ids.push(config.preview_camera);
   if (doorbell) ids.push(doorbell);
   return ids;
 }
