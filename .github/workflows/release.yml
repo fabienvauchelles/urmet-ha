@@ -3,7 +3,9 @@ name: Release
 # On a published release, build the Lovelace card, bundle the integration into
 # urmet.zip (with the built card inside its www/ directory) and attach the archive
 # to the release. HACS installs the integration from this asset (hacs.json:
-# zip_release), so the archive must carry the custom_components/urmet/ tree.
+# zip_release) by extracting it into config/custom_components/urmet/, so the
+# archive must carry the integration files at its ROOT, not under a
+# custom_components/urmet/ prefix.
 
 on:
   release:
@@ -39,7 +41,9 @@ jobs:
         run: test -f custom_components/urmet/www/urmet-portier-card.js
 
       - name: Assemble urmet.zip
-        run: zip -r urmet.zip custom_components/urmet -x '*/__pycache__/*' '*.pyc'
+        # Zip the CONTENTS of the integration directory, so manifest.json and the
+        # rest sit at the archive root, which is where HACS expects them.
+        run: cd custom_components/urmet && zip -r "$GITHUB_WORKSPACE/urmet.zip" . -x '*/__pycache__/*' '*.pyc'
 
       - name: Attach urmet.zip to the release
         env:
