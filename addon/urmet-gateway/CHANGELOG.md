@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- One open action: the gateway opens inside the live call when one is streaming
+  and places a short call otherwise, so the caller no longer picks a dialog. The
+  `call_id` parameter is gone from the open endpoints.
+
 ## 0.1.2
 
 - No gateway change. Version aligned with the card and integration release: the

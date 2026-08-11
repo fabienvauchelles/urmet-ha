@@ -20,8 +20,9 @@ Three pieces live in this one repository, installed in this order:
    publishes the doorphone entities and services, raises Repairs issues, and
    registers the card.
 3. **Card: `custom:urmet-portier-card`** (`card/`). A Lit and TypeScript Lovelace
-   card that owns the WebRTC leg, the ring banner, the openers and the two-way
-   audio. It is built by CI and shipped inside the integration.
+   card that owns the WebRTC leg, the ring banner and the two-way audio, and
+   answers a ring on arrival. The door and gate are opened from their own button
+   entities, not the card. It is built by CI and shipped inside the integration.
 
 ## Why this exists
 
@@ -108,7 +109,7 @@ The integration exposes `event.portier_*`, `button.portier_*`,
 
 ## Status and limitations
 
-Version `0.1.2`. Working, early, and honest about what is proven.
+Version `0.1.3`. Working, early, and honest about what is proven.
 
 - **amd64 only.** The pjsua2 build the add-on relies on is validated for that
   architecture alone.

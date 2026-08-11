@@ -25,4 +25,4 @@ win.customCards.push({
   documentationURL: "https://github.com/fabienvauchelles/urmet-ha",
 });
 
-console.info("%c URMET-PORTIER-CARD %c 0.1.2 ", "background:#1e88e5;color:#fff;border-radius:3px", "");
+console.info("%c URMET-PORTIER-CARD %c 0.1.3 ", "background:#1e88e5;color:#fff;border-radius:3px", "");
