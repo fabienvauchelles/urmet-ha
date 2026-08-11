@@ -197,7 +197,12 @@ def main() -> int:
     except ConfigurationError as error:
         logger.error("%s", error)
         return EXIT_CONFIG
-    logger.setLevel(gateway.log_level.upper())
+    level = gateway.log_level.upper()
+    # Set the root logger too, not just ours, so the SDK and its pjsip layer
+    # surface their own login and REGISTER lines at debug, which is what a remote
+    # operator needs to see why a binding did or did not come up.
+    logging.getLogger().setLevel(level)
+    logger.setLevel(level)
     web.run_app(build_app(gateway, sdk_settings), host=gateway.host, port=gateway.port)
     return 0
 

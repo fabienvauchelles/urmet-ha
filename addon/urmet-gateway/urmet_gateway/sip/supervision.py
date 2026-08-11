@@ -115,6 +115,15 @@ class RegistrationSupervisor:
         if self._task is not None:
             return
         self._task = asyncio.get_running_loop().create_task(self._supervise())
+        self._task.add_done_callback(self._log_if_died)
+
+    def _log_if_died(self, task: asyncio.Task[None]) -> None:
+        """A supervise loop that ends by raising must never do so silently."""
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None:
+            logger.error("registration supervisor stopped on an unhandled error", exc_info=error)
 
     async def stop(self) -> None:
         """End the loop and release the binding, reporting a release it could not get.
@@ -143,13 +152,22 @@ class RegistrationSupervisor:
         while not self._stopped:
             client = self._build_client()
             self._client = client
+            logger.info("registering with the Urmet cloud")
             try:
                 await self._worker.run(client.start, timeout=self._register_timeout_s)
             except UrmetError as error:
+                logger.warning("registration refused: %s", error)
                 self._publish_down(client, reason=str(error))
                 await self._release(client)
                 await self._wait_before_retry()
                 continue
+            except Exception as error:
+                logger.exception("registration attempt raised, will retry")
+                self._publish_down(client, reason=str(error))
+                await self._release(client)
+                await self._wait_before_retry()
+                continue
+            logger.info("registered with the Urmet cloud")
             self._publish_up(client)
             self._reset_backoff()
             # A fresh client is what the rest of the graph now speaks through, and
@@ -160,6 +178,10 @@ class RegistrationSupervisor:
             try:
                 await self._hold(client)
             except UrmetError as error:
+                logger.warning("binding lost: %s", error)
+                self._publish_down(client, reason=str(error))
+            except Exception as error:
+                logger.exception("hold loop raised, will reconnect")
                 self._publish_down(client, reason=str(error))
             await self._release(client)
             await self._wait_before_retry()
