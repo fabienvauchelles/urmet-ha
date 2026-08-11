@@ -26,7 +26,6 @@ from urmet_gateway.http.models import (
     HealthResponse,
     MicRequest,
     OfferRequest,
-    OpenRequest,
 )
 from urmet_gateway.usecases import DoorphoneService
 
@@ -123,8 +122,7 @@ class RestApi:
         return web.Response(status=204)
 
     async def _open(self, request: web.Request, actuator: ActuatorName) -> web.Response:
-        body = await _parse(request, OpenRequest)
-        await self._service.open(actuator, body.call_id)
+        await self._service.open(actuator)
         return web.Response(status=204)
 
 

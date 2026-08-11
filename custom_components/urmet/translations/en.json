@@ -160,10 +160,6 @@
         "actuator": {
           "name": "Actuator",
           "description": "Which actuator to fire."
-        },
-        "call_id": {
-          "name": "Call id",
-          "description": "Send the command inside this dialog. Leave empty to answer a ring or place a short audio call first."
         }
       }
     },

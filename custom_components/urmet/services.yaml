@@ -36,11 +36,6 @@ open:
           options:
             - door
             - gate
-    call_id:
-      required: false
-      example: "a1b2c3"
-      selector:
-        text:
 
 set_microphone:
   fields:

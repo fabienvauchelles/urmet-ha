@@ -53,7 +53,7 @@ async def test_ring_answer_open_hangup() -> None:
         ]
 
         # The open travels inside the answered dialog and the panel acknowledges it.
-        await graph.service.open(ActuatorName.DOOR, call_id)
+        await graph.service.open(ActuatorName.DOOR)
         await graph.drain()
         opens = graph.typed("open")
         assert len(opens) == 1

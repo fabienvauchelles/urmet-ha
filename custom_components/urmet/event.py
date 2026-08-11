@@ -34,7 +34,7 @@ from .const import (
 from .coordinator import UrmetConfigEntry, UrmetCoordinator
 from .entity import UrmetEntity
 from .events import GatewayEvent, OpenEvent, RingEvent
-from .services import take_open_origin
+from .services import take_open
 
 EVENT_RING = "ring"
 
@@ -117,13 +117,17 @@ class ActuatorEvent(_UrmetEvent):
             return
         if event.actuator not in self._attr_event_types:
             return
-        origin = take_open_origin(self.hass, self._entry.entry_id)
+        pending = take_open(self.hass, self._entry.entry_id)
+        # Attribute the open to the user who asked, so the logbook reads "opened
+        # by <person>" rather than crediting the integration's own callback.
+        if pending.context is not None:
+            self.async_set_context(pending.context)
         self._trigger_event(
             event.actuator,
             {
                 "acknowledged": event.acknowledged,
                 "call_id": event.call_id,
-                "origin": origin,
+                "origin": pending.origin,
             },
         )
         self.async_write_ha_state()

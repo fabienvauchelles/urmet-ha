@@ -16,7 +16,6 @@ from urmet_gateway.http.models import (
     HealthResponse,
     MicRequest,
     OfferRequest,
-    OpenRequest,
 )
 from urmet_gateway.http.rest import RestApi
 from urmet_gateway.http.ws import EventsApi
@@ -30,7 +29,6 @@ __all__ = [
     "HealthResponse",
     "MicRequest",
     "OfferRequest",
-    "OpenRequest",
     "RestApi",
     "create_app",
     "error_middleware",

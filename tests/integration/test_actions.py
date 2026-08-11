@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 from gateway_double import DOORPHONE_MAC, FakeGateway
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNKNOWN
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Context, HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -86,12 +86,14 @@ async def test_open_204_fires_event_and_counts(
     actuator = _id_for(hass, entry, "actuator")
     door_total = _id_for(hass, entry, "door_total")
 
+    caller = Context(user_id="user-abc")
     response = await hass.services.async_call(
         DOMAIN,
         "open",
         {"actuator": "door"},
         blocking=True,
         return_response=True,
+        context=caller,
     )
     assert response == {"acknowledged": True}
 
@@ -100,6 +102,8 @@ async def test_open_204_fires_event_and_counts(
     assert state.attributes["event_type"] == "door"
     assert state.attributes["acknowledged"] is True
     assert state.attributes["origin"] == "service"
+    # The open is attributed to the user who asked, so the logbook can name them.
+    assert state.context.user_id == "user-abc"
 
     await _wait_until(hass, lambda: hass.states.get(door_total).state == "1")
 

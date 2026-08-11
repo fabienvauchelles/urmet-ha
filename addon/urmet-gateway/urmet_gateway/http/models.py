@@ -40,16 +40,6 @@ class CallCreated(BaseModel):
     call_id: str
 
 
-class OpenRequest(_Body):
-    """``POST /api/door|gate/open``: drive an actuator, in a dialog or on its own.
-
-    ``call_id`` null places and releases a short audio-only call for the INFO; a
-    ring in progress is answered first and the INFO goes into that dialog.
-    """
-
-    call_id: str | None = None
-
-
 class MicRequest(_Body):
     """``POST /api/mic``: whether the doorphone may hear this end at all."""
 

@@ -71,7 +71,11 @@ class OpenDoorButton(_UrmetButton):
 
     async def async_press(self) -> None:
         await async_open(
-            self.hass, self._entry, actuator=ACTUATOR_DOOR, call_id=None, origin=ORIGIN_CARD
+            self.hass,
+            self._entry,
+            actuator=ACTUATOR_DOOR,
+            origin=ORIGIN_CARD,
+            context=self._context,
         )
 
 
@@ -81,7 +85,11 @@ class OpenGateButton(_UrmetButton):
 
     async def async_press(self) -> None:
         await async_open(
-            self.hass, self._entry, actuator=ACTUATOR_GATE, call_id=None, origin=ORIGIN_CARD
+            self.hass,
+            self._entry,
+            actuator=ACTUATOR_GATE,
+            origin=ORIGIN_CARD,
+            context=self._context,
         )
 
 

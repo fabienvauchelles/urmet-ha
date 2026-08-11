@@ -45,22 +45,42 @@
   },
   "entity": {
     "event": {
-      "sonnette": { "name": "Doorbell" },
-      "ouverture": { "name": "Door release" }
+      "sonnette": {
+        "name": "Doorbell"
+      },
+      "ouverture": {
+        "name": "Door release"
+      }
     },
     "button": {
-      "porte": { "name": "Open the door" },
-      "portail": { "name": "Gate (step by step)" },
-      "regarder": { "name": "Look at the door" },
-      "repondre": { "name": "Answer" },
-      "raccrocher": { "name": "Hang up" }
+      "porte": {
+        "name": "Open the door"
+      },
+      "portail": {
+        "name": "Gate (step by step)"
+      },
+      "regarder": {
+        "name": "Look at the door"
+      },
+      "repondre": {
+        "name": "Answer"
+      },
+      "raccrocher": {
+        "name": "Hang up"
+      }
     },
     "switch": {
-      "micro": { "name": "Microphone" }
+      "micro": {
+        "name": "Microphone"
+      }
     },
     "binary_sensor": {
-      "sip": { "name": "SIP registration" },
-      "appel_en_cours": { "name": "Call in progress" }
+      "sip": {
+        "name": "SIP registration"
+      },
+      "appel_en_cours": {
+        "name": "Call in progress"
+      }
     },
     "sensor": {
       "etat_appel": {
@@ -74,12 +94,24 @@
           "error": "Error"
         }
       },
-      "derniere_sonnerie": { "name": "Last ring" },
-      "sonneries": { "name": "Rings" },
-      "ouvertures_porte": { "name": "Door releases" },
-      "ouvertures_portail": { "name": "Gate steps" },
-      "code_sip": { "name": "SIP code" },
-      "derniere_erreur": { "name": "Last error" }
+      "derniere_sonnerie": {
+        "name": "Last ring"
+      },
+      "sonneries": {
+        "name": "Rings"
+      },
+      "ouvertures_porte": {
+        "name": "Door releases"
+      },
+      "ouvertures_portail": {
+        "name": "Gate steps"
+      },
+      "code_sip": {
+        "name": "SIP code"
+      },
+      "derniere_erreur": {
+        "name": "Last error"
+      }
     }
   },
   "selector": {
@@ -128,10 +160,6 @@
         "actuator": {
           "name": "Actuator",
           "description": "Which actuator to fire."
-        },
-        "call_id": {
-          "name": "Call id",
-          "description": "Send the command inside this dialog. Leave empty to answer a ring or place a short audio call first."
         }
       }
     },

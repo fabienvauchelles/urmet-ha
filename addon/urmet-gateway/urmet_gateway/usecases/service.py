@@ -142,20 +142,21 @@ class DoorphoneService:
         self._mic_muted = muted
         self.publish_state()
 
-    async def open(self, actuator: ActuatorName, call_id: str | None = None) -> None:
+    async def open(self, actuator: ActuatorName) -> None:
         """Drive an actuator, and report only an open the panel acknowledged.
 
-        With ``call_id`` the INFO travels inside that dialog; without one the SDK
-        places a call of its own and releases it. Raises
+        One action, whatever the moment: while a call streams the INFO travels
+        inside that live dialog, otherwise the SDK places a short call of its own
+        and releases it. The caller never chooses between the two. Raises
         ``OpenNotAcknowledgedError`` when the panel stayed silent or answered
         non-200, published as unknown rather than open, and never retried.
         """
+        streaming = self._calls.streaming()
         try:
-            if call_id is None:
-                await self._open_on_demand(actuator)
+            if streaming:
+                await self._port.open_during(streaming[0].handle, actuator.signal)
             else:
-                call = self._calls.handle(call_id)
-                await self._port.open_during(call, actuator.signal)
+                await self._open_on_demand(actuator)
         except OpenNotAcknowledgedError:
             self._publish(OpenEvent(at=self._now(), actuator=actuator, acknowledged=False))
             raise

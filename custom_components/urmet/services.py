@@ -15,8 +15,11 @@ receives back (card, service or notification).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import voluptuous as vol
 from homeassistant.core import (
+    Context,
     HomeAssistant,
     ServiceCall,
     ServiceResponse,
@@ -54,23 +57,38 @@ ATTR_MUTED = "muted"
 ATTR_ACKNOWLEDGED = "acknowledged"
 
 _OPEN_PATHS = {ACTUATOR_DOOR: "/api/door/open", ACTUATOR_GATE: "/api/gate/open"}
-_PENDING_OPEN_ORIGIN = f"{DOMAIN}_open_origin"
+_PENDING_OPEN = f"{DOMAIN}_pending_open"
 
 
-# --- Open-origin stash (read back by the event entity) ---------------------
+# --- Open provenance stash (read back by the event entity) -----------------
+
+
+@dataclass(frozen=True, slots=True)
+class PendingOpen:
+    """What is known about the open in flight: its source, and who asked for it.
+
+    ``context`` carries the Home Assistant user behind the press or the service
+    call, so the event entity can attribute the open to a person in the logbook.
+    It is ``None`` when nothing was stashed or the caller was not a user.
+    """
+
+    origin: str
+    context: Context | None
 
 
 @callback
-def stash_open_origin(hass: HomeAssistant, entry_id: str, origin: str) -> None:
+def stash_open_origin(
+    hass: HomeAssistant, entry_id: str, origin: str, context: Context | None = None
+) -> None:
     """Record who initiated the next open so the event entity can label it."""
-    hass.data.setdefault(_PENDING_OPEN_ORIGIN, {})[entry_id] = origin
+    hass.data.setdefault(_PENDING_OPEN, {})[entry_id] = PendingOpen(origin, context)
 
 
 @callback
-def take_open_origin(hass: HomeAssistant, entry_id: str) -> str:
-    """Consume the stashed origin for one gateway ``open`` event."""
-    store: dict[str, str] = hass.data.get(_PENDING_OPEN_ORIGIN, {})
-    return store.pop(entry_id, DEFAULT_ORIGIN)
+def take_open(hass: HomeAssistant, entry_id: str) -> PendingOpen:
+    """Consume the stashed provenance for one gateway ``open`` event."""
+    store: dict[str, PendingOpen] = hass.data.get(_PENDING_OPEN, {})
+    return store.pop(entry_id, PendingOpen(DEFAULT_ORIGIN, None))
 
 
 # --- Command coroutines (the single path to the gateway) -------------------
@@ -81,16 +99,20 @@ async def async_open(
     entry: UrmetConfigEntry,
     *,
     actuator: str,
-    call_id: str | None,
     origin: str,
+    context: Context | None = None,
 ) -> bool:
-    """Fire an actuator. Return whether the panel acknowledged (DESIGN 6.5)."""
+    """Fire an actuator. Return whether the panel acknowledged (DESIGN 6.5).
+
+    One action: the gateway opens inside the live call when one streams and
+    places a short call otherwise, so nothing here picks a dialog. ``context``
+    carries the user who asked, stashed for the event entity to attribute the
+    open to a person in the logbook.
+    """
     if actuator not in _OPEN_PATHS:
         raise ServiceValidationError(f"unknown actuator {actuator!r}")
-    stash_open_origin(hass, entry.entry_id, origin)
-    resp = await _client(entry).async_request(
-        "POST", _OPEN_PATHS[actuator], json={ATTR_CALL_ID: call_id}
-    )
+    stash_open_origin(hass, entry.entry_id, origin, context)
+    resp = await _client(entry).async_request("POST", _OPEN_PATHS[actuator])
     return resp.status == 204
 
 
@@ -183,8 +205,8 @@ async def _handle_open(call: ServiceCall) -> ServiceResponse:
         call.hass,
         entry,
         actuator=call.data[ATTR_ACTUATOR],
-        call_id=call.data.get(ATTR_CALL_ID),
         origin=ORIGIN_SERVICE,
+        context=call.context,
     )
     return {ATTR_ACKNOWLEDGED: acknowledged}
 
@@ -213,12 +235,7 @@ _CALL_ID_FIELD = {vol.Optional(ATTR_CALL_ID): selector.TextSelector()}
 _ANSWER_SCHEMA = vol.Schema(_CALL_ID_FIELD)
 _HANG_UP_SCHEMA = vol.Schema(_CALL_ID_FIELD)
 _LOOK_SCHEMA = vol.Schema({vol.Optional(ATTR_WANT_VIDEO, default=True): selector.BooleanSelector()})
-_OPEN_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ACTUATOR): vol.In(ACTUATORS),
-        vol.Optional(ATTR_CALL_ID): selector.TextSelector(),
-    }
-)
+_OPEN_SCHEMA = vol.Schema({vol.Required(ATTR_ACTUATOR): vol.In(ACTUATORS)})
 _SET_MICROPHONE_SCHEMA = vol.Schema({vol.Required(ATTR_MUTED): cv.boolean})
 
 

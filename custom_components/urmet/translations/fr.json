@@ -160,10 +160,6 @@
         "actuator": {
           "name": "Actionneur",
           "description": "Quel actionneur déclencher."
-        },
-        "call_id": {
-          "name": "Identifiant d'appel",
-          "description": "Envoyer la commande dans ce dialogue. Laissez vide pour répondre à une sonnerie ou placer un court appel audio d'abord."
         }
       }
     },
