@@ -10,11 +10,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from homeassistant.components.frontend import DATA_EXTRA_MODULE_URL, add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.const import Platform
+from homeassistant.components.lovelace.const import CONF_RESOURCE_TYPE_WS
+from homeassistant.components.lovelace.const import DOMAIN as LOVELACE_DOMAIN
+from homeassistant.components.lovelace.resources import ResourceStorageCollection
+from homeassistant.const import CONF_URL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.loader import async_get_integration
+from homeassistant.setup import async_when_setup
 
 from .client import GatewayClient
 from .const import CONF_HOST, CONF_PORT, DOMAIN, LOGGER
@@ -51,15 +55,45 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def _register_card(hass: HomeAssistant) -> None:
-    """Serve the card bundle and load it as a frontend module (DESIGN 6.2)."""
+    """Serve the card bundle and register it as a Lovelace resource (DESIGN 6.2).
+
+    The bundle loads as a Lovelace resource rather than through
+    ``add_extra_js_url``: that helper injects the module during the initial page
+    parse, before the frontend installs its scoped custom-element registry, so
+    the card would define itself into a registry Home Assistant no longer reads
+    and the tag would render as "custom element doesn't exist". A resource is
+    imported after that registry is in place, which is where the built-in cards
+    that work live too.
+    """
     card = str(Path(__file__).parent / "www" / CARD_FILENAME)
     await hass.http.async_register_static_paths([StaticPathConfig(CARD_URL, card, True)])
-    # add_extra_js_url needs the frontend integration, an after-dependency that is
-    # always present on a running instance but may be absent in a bare test loop.
-    if DATA_EXTRA_MODULE_URL in hass.data:
-        add_extra_js_url(hass, CARD_URL)
-    else:
-        LOGGER.debug("frontend not loaded, urmet card static path served but not auto-added")
+    async_when_setup(hass, "lovelace", _register_card_resource)
+
+
+async def _register_card_resource(hass: HomeAssistant, _component: str) -> None:
+    """Add or refresh the card's Lovelace resource, versioned to bust the cache.
+
+    Only storage-mode dashboards accept a programmatic resource, which is exactly
+    a ``ResourceStorageCollection``; a YAML-mode instance keeps its resources in
+    the file and must add the URL by hand, so this logs and returns there.
+    """
+    data = hass.data.get(LOVELACE_DOMAIN)
+    resources = getattr(data, "resources", None)
+    if not isinstance(resources, ResourceStorageCollection):
+        LOGGER.debug("lovelace is not in storage mode; add the urmet card resource by hand")
+        return
+    integration = await async_get_integration(hass, DOMAIN)
+    versioned = f"{CARD_URL}?v={integration.version}"
+    # Force the store to load before reading it. async_get_info gained a return
+    # annotation after the pinned Home Assistant, so the typed context flags it.
+    await resources.async_get_info()  # type: ignore[no-untyped-call]
+    for item in resources.async_items():
+        if str(item.get(CONF_URL, "")).split("?", 1)[0] != CARD_URL:
+            continue
+        if item[CONF_URL] != versioned:
+            await resources.async_update_item(item["id"], {CONF_URL: versioned})
+        return
+    await resources.async_create_item({CONF_RESOURCE_TYPE_WS: "module", CONF_URL: versioned})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: UrmetConfigEntry) -> bool:
