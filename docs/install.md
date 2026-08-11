@@ -21,9 +21,8 @@ integration's entities.
 
 ## 2. The integration (HACS)
 
-`custom_components/` is gitignored on this box, so the integration ships through
-HACS, not through the GitOps repository. This is the first custom repository on
-the box.
+The integration is not on the default add-on store. It installs through HACS as a
+custom repository.
 
 1. HACS > top-right menu > Custom repositories. Add
    `https://github.com/fabienvauchelles/urmet-ha`, category **Integration**.
@@ -38,25 +37,30 @@ the box.
 
 ## 3. The dashboard and automations
 
-Versioned through the GitOps repository. Full landing paths, the merge rules, the
-`lovelace:` block and the single core restart it needs are in
-`../dashboard/README.md`. In short: copy `dashboard/portier.yaml` into
-`dashboards/`, merge `automations.portier.yaml` and `scripts.portier.yaml`, add
-the `lovelace:` block to `configuration.yaml`, push, fire the deploy webhook, and
-restart core once for the `lovelace:` block. Then run `script.portier_test` to
-put the whole notification chain on the phone.
+The example dashboard, automations and test script live in `dashboard/`. Full
+landing paths, the merge rules, the `lovelace:` block and the single core restart
+it needs are in `../dashboard/README.md`. In short: copy `dashboard/portier.yaml`
+into your config's `dashboards/` folder, merge `automations.portier.yaml` and
+`scripts.portier.yaml` into your existing `automations.yaml` and `scripts.yaml`,
+add the `lovelace:` block to `configuration.yaml`, and restart core once for the
+`lovelace:` block. Then run `script.portier_test` to put the whole notification
+chain on the phone.
 
 ## Two-way audio needs a secure context
 
 Listening and watching work anywhere. Talking back does not: the microphone needs
-a browser secure context, and a plain `http://homeassistant.creteil` tab on the
-LAN is not one. `getUserMedia` is refused there and the card disables the talk
-control with a plain sentence rather than failing silently.
+a browser secure context, and a plain `http://` tab on the LAN (for example
+`http://homeassistant.local`) is not one. Browsers only expose `getUserMedia` on
+`https://` origins and on `http://localhost`, so a LAN hostname over plain HTTP is
+refused. The card disables the talk control with a plain sentence rather than
+failing silently.
 
 For two-way audio use one of:
 
 - the Home Assistant **companion app** (iOS or Android), which grants the
   microphone natively, or
-- the HTTPS origin **`https://ha.vauchelles.com:16398`**.
+- your own HTTPS origin for Home Assistant, for example
+  `https://home-assistant.example.com`. Use whatever HTTPS URL your instance is
+  reachable at (a reverse proxy, Nabu Casa, or a self-signed cert all qualify).
 
 Not `http` on the LAN. This is a browser rule, not a limitation of the gateway.

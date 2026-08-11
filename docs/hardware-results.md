@@ -33,7 +33,7 @@ Record raw numbers, not conclusions. Two attempts are not a rate.
 | 9 | Ghost bindings after unclean stop | | after kill: ; after power cut: ; after OS update: | |
 | 10 | Open acknowledgement latency `[ACTUATION]` | | latency to 200: ; Signal count in log: ; physical result: | |
 | 11 | Another device already in a call | | panel behaviour: ; gateway saw: | |
-| 12 | Notification chain on SM-S908U | | picture: ; actions: ; deep link: ; channel: ; freshness guard: | |
+| 12 | Notification chain on the test phone | | picture: ; actions: ; deep link: ; channel: ; freshness guard: | |
 
 Notes and anything unexpected:
 

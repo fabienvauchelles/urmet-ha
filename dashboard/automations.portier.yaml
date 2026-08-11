@@ -13,10 +13,12 @@
 #   3. the SIP-down alert (block 4);
 #   4. the unconfirmed-release repair notification (block 5).
 #
-# All notifications go through notify.alarme_diffusion, the single fan-out point:
-# adding a second phone is one line there, not an edit in five automations. The
-# picture is always camera.frontyard, never the panel, because answering the
-# panel to grab a still would stop the ring on the household handsets.
+# All notifications go through notify.notify here. Point it at your own target
+# instead (for example notify.mobile_app_YOUR_PHONE), or at a notify group if you
+# want the ring to fan out to several phones. The picture is always
+# camera.frontyard, never the panel, because answering the panel to grab a still
+# would stop the ring on the household handsets. camera.frontyard is an example
+# id: use your own yard camera entity.
 
 # 1. Ring -> actionable notification. Does NOT open anything by itself.
 - id: portier_ring_notification
@@ -32,7 +34,7 @@
   variables:
     vue: /portier/appel
   actions:
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         title: "🔔 Quelqu'un sonne au portail"
         message: "Sonnerie à {{ now().strftime('%H:%M:%S') }}."
@@ -88,12 +90,12 @@
         - unavailable
         - unknown
   actions:
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         message: command_webview
         data:
           command: /portier/appel
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         message: command_screen_on
 
@@ -109,7 +111,7 @@
       to: "off"
       for: "00:05:00"
   actions:
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         title: "Portier hors ligne"
         message: "Le portier n'est plus enregistré depuis 5 minutes (code {{ states('sensor.portier_code_sip') }})."
@@ -139,7 +141,7 @@
         {{ 'releas' in (states('sensor.portier_derniere_erreur') | lower)
            or 'libér' in (states('sensor.portier_derniere_erreur') | lower) }}
   actions:
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         title: "Portier - liaison SIP non libérée"
         message: "La liaison SIP n'a pas pu être libérée, le portier peut rester dégradé jusqu'à 15 minutes."

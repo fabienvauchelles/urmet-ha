@@ -5,6 +5,8 @@
 # Two views: "appel" (the live surface a ring notification deep-links to) and
 # "journal" (history and diagnostics). The custom card, the camera preview and
 # the openers all live on the appel view; nothing here auto-answers or auto-opens.
+# camera.frontyard is an example id: replace it with your own yard camera entity,
+# both in the card's preview_camera option and in the picture-entity below.
 views:
   - title: Appel
     path: appel
@@ -48,7 +50,6 @@ views:
               - binary_sensor.portier_sip
               - sensor.portier_etat_appel
               - sensor.portier_derniere_sonnerie
-              - binary_sensor.allee_avant_person_occupancy
   - title: Journal
     path: journal
     type: sections

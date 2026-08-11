@@ -121,9 +121,9 @@ Unknown. Procedure: put a household handset or the Urmet app in a call with the
 panel, then place a view call from the gateway and observe. Record: what the panel
 does, and what the gateway sees. Not actuation.
 
-## 12. The notification chain on the SM-S908U
+## 12. The notification chain on the test phone
 
-The whole chain on Fabien's phone, including the channel settings Android freezes
+The whole chain on the test phone, including the channel settings Android freezes
 at creation. Procedure: run `script.portier_test`, then a real ring, and check the
 picture, both actions, the deep link, and the channel behaviour. Record: what
 arrived, latency, and whether the freshness guard on the open action held.

@@ -1,8 +1,8 @@
 # urmet-ha
 
 Home Assistant add-on, integration and Lovelace card for an Urmet 2Voice video
-doorphone, built on the `urmet-sdk` submodule. The implementation contract is the
-DESIGN document referenced by each work package; this file is the standing briefing.
+doorphone, built on the `urmet-sdk` package from PyPI. The implementation contract is
+the DESIGN document referenced by each work package; this file is the standing briefing.
 
 ## Deliverables
 

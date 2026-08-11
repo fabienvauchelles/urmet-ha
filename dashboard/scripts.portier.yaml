@@ -14,7 +14,7 @@ portier_test:
   sequence:
     - variables:
         vue: /portier/appel
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         title: "🔔 Test portier"
         message: "Chaîne de notification du portier, {{ now().strftime('%H:%M:%S') }}."
@@ -35,11 +35,11 @@ portier_test:
             - action: PORTIER_OPEN_DOOR
               title: Ouvrir la porte
               authenticationRequired: true
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         message: command_webview
         data:
           command: "{{ vue }}"
-    - action: notify.alarme_diffusion
+    - action: notify.notify
       data:
         message: command_screen_on
