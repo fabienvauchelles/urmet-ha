@@ -18,7 +18,8 @@ Three pieces live in this one repository, installed in this order:
 2. **Integration: Portier Urmet** (`custom_components/urmet/`). A HACS-installable
    custom integration (domain `urmet`, `local_push`). It talks to the add-on,
    publishes the doorphone entities and services, raises Repairs issues, and
-   registers the card.
+   registers the card. Its `brand/` directory carries the icon and the logo Home
+   Assistant shows for it, in a light and a dark variant.
 3. **Card: `custom:urmet-portier-card`** (`card/`). A Lit and TypeScript Lovelace
    card that owns the WebRTC leg, the ring banner and the two-way audio, and
    answers a ring on arrival. The door and gate are opened from their own button
@@ -147,3 +148,11 @@ Tests are full-scenario only, driven through the public surface against the
 
 `LicenseRef-FSL-1.1-MIT`, the Functional Source License 1.1 with an MIT future
 license. See [`LICENSE`](LICENSE).
+
+## Trademarks
+
+Urmet and the Urmet marks are the property of Urmet S.p.A. The images under
+`custom_components/urmet/brand/` are derived from the marks Urmet publishes on its
+own sites, redrawn only in size and colour, and are used to identify the device this
+project talks to. That use is nominative and does not imply any affiliation with or
+endorsement by Urmet.

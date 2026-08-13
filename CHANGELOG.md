@@ -2,6 +2,16 @@
 
 Covers the whole project: the add-on gateway, the integration, and the card.
 
+## 0.2.2
+
+- The integration carries its own brand images in `custom_components/urmet/brand/`,
+  so Home Assistant shows the Urmet mark instead of the placeholder puzzle piece on
+  the integrations page, in the device registry and in HACS. Home Assistant 2026.3
+  and later reads that directory and prefers it over the brands CDN, which spares a
+  pull request to `home-assistant/brands` and its review delay. Eight files: `icon`
+  and `logo`, each in a normal and an hDPI size, each with a `dark_` variant so the
+  mark stays readable on both themes.
+
 ## 0.2.1
 
 - The add-on image now ships the ingress diagnostics page. Its static files
